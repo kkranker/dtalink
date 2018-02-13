@@ -2,16 +2,16 @@
       name:  dtalink_example
        log:  C:\Users\kkranker\Documents\Stata\Ado\personal\d\dtalink_example.log
   log type:  text
- opened on:  27 Aug 2018, 20:37:15
+ opened on:  13 Feb 2019, 09:41:19
 
 . 
-. *! $Id: dtalink_example.do,v a7f00d9abef8 2018/07/31 04:28:39 kkranker $
+. *! $Id: dtalink_example.do,v 4b6216cc2d41 2019/02/13 16:40:49 kkranker $
 . *! Probabilistic record linkage routine - examples
 . *!
 . *! This progam shows how the dtalink command might be used.
 . *!
 . *! By Keith Kranker
-. *! $Date: 2018/07/31 04:28:39 $
+. *! $Date: 2019/02/13 16:40:49 $
 . *
 . * Copyright (C) Mathematica Policy Research, Inc. This code cannot be copied, distributed or used without the express written permission of Mathematica Policy
 >  Research, Inc.
@@ -20,11 +20,11 @@
 C:\Users\kkranker\Documents\Stata\Ado\personal\d
 
 . which dtalink
-C:\Users\kkranker\Documents\Stata\Ado\Personal\d\dtalink.ado
-*! $Id: dtalink.ado,v f92c3c1d6258 2018/08/28 02:32:28 kkranker $
+.\dtalink.ado
+*! $Id: dtalink.ado,v 4b6216cc2d41 2019/02/13 16:40:49 kkranker $
 *! Probabilistic record linkage or deduplication
 *! By Keith Kranker
-*! $Date: 2018/08/28 02:32:28 $
+*! $Date: 2019/02/13 16:40:49 $
 *! Mata Source Code
 *! Defines classes which are called by dtalink.ado
 *! dtalink is the parent class and includes shared functions
@@ -340,7 +340,7 @@ Exact matching variables   |
 ------------------------------------------------------------------------------
   10 matches were found.
 
-Matching weights (after loop 1)
+Suggested matching weights:
 -----------------------------------------------------------------------
                            | new_wgt_match  new_wgt_no_match    Caliper
 ---------------------------+-------------------------------------------
@@ -1475,7 +1475,7 @@ The current configuration of the data is: one row per record.
 . drop file
 
 . save "`file2'"
-file C:\Users\kkranker\AppData\Local\Temp\ST_3990_000002.tmp saved
+file C:\Users\kkranker\AppData\Local\Temp\ST_4f14_000002.tmp saved
 
 . 
 . restore, preserve
@@ -1557,12 +1557,12 @@ Stata dir:  C:\Program Files (x86)\Stata15/StataMP-64.exe
 --------------------------------------------------------------------------------
 Parallel Computing with Stata (by GVY)
 Clusters   : 2
-pll_id     : cne7r5uk37
+pll_id     : 6m5pvebxf5
 Running at : C:\Users\kkranker\Documents\Stata\Ado\personal\d
 Randtype   : datetime
 Waiting for the clusters to finish...
-cluster 0002 has exited without error...
 cluster 0001 has exited without error...
+cluster 0002 has exited without error...
 --------------------------------------------------------------------------------
 Enter -parallel printlog #- to checkout logfiles.
 --------------------------------------------------------------------------------
@@ -1606,7 +1606,6 @@ number of observations (_N) was 0, now 10
          . |         2          0 |         2 
 -----------+----------------------+----------
      Total |         6          4 |        10 
-
 
 . dtalink var1 1 0 var1 1 0 0, source(file) wide cutoff(1)
 
@@ -2134,7 +2133,7 @@ Exact matching variables   |
 ------------------------------------------------------------------------------
   7 matches were found.
 
-Matching weights (after loop 1)
+Suggested matching weights:
 -----------------------------------------------------------------------
                            | new_wgt_match  new_wgt_no_match    Caliper
 ---------------------------+-------------------------------------------
@@ -2462,7 +2461,7 @@ Examples (up to 16 rows):
   15. |        8      7     4.10    Matched   14   18    4     male    1    0    0   CA |
   16. |        8    457     4.10    Matched   20   18    4     male    0    1    1   TX |
       +---------------------------------------------------------------------------------+
-  Time to run = .42 sec
+  Time to run = .4 sec
 
 . 
 . restore, preserve
@@ -2565,12 +2564,14 @@ Examples (up to 16 rows):
      |--------------------------------------------|
  16. |       16     17     70     4.10    Matched |
      +--------------------------------------------+
-  Time to run = .71 sec
+  Time to run = .78 sec
 
 . 
 . restore, preserve
 
-. dtalink x1 1 -1 x2 2 -2 x3 3 -3 2 x4 .1 -5, cutoff(2) describe examples(16) calcweights(4)
+. qui {
+
+. dtalink `r(new_wgt_specs)'                , cutoff(2) describe examples(16) calcweights
 
 ------------------------------------------------------------------------------
 Usage type and variable    |
@@ -2580,31 +2581,16 @@ Blocking variables         |
                     (None) |                                                 0
 ---------------------------+--------------------------------------------------
 Caliper matching variables |
-                        x3 |               3               -3                2
+                        x3 |        2.677725        -1021.755                2
 ---------------------------+--------------------------------------------------
 Exact matching variables   |
-                        x1 |               1               -1                0
-                        x2 |               2               -2                0
-                        x4 |              .1               -5                0
+                        x1 |        4.047597        -.9852036                0
+                        x2 |        4.042108        -.9804696                0
+                        x4 |        1.007822        -1021.008                0
 ------------------------------------------------------------------------------
   10634 matches were found.
 
-Matching weights (after loop 1)
------------------------------------------------------------------------
-                           | new_wgt_match  new_wgt_no_match    Caliper
----------------------------+-------------------------------------------
-Caliper_matching_variables |
-                        x3 |         2.678         -1021.755      2.000
----------------------------+-------------------------------------------
-Exact_matching_variables   |
-                        x1 |         4.048            -0.985          .
-                        x2 |         4.042            -0.980          .
-                        x4 |         1.008         -1021.008          .
------------------------------------------------------------------------
-  10634 matches were found.
-No additinal matches found.
-
-Matching weights (after loop 4)
+Suggested matching weights:
 -----------------------------------------------------------------------
                            | new_wgt_match  new_wgt_no_match    Caliper
 ---------------------------+-------------------------------------------
@@ -2690,10 +2676,10 @@ Examples (up to 16 rows):
 . return list
 
 scalars:
-         r(scores_max) =  11.77525143733782
-         r(scores_min) =  6.742451124424923
-          r(scores_sd) =  .6913553713610699
-        r(scores_mean) =  6.844493516744254
+         r(scores_max) =  11.775252
+         r(scores_min) =  6.7424514
+          r(scores_sd) =  .691355410920888
+        r(scores_mean) =  6.844493797216476
            r(pairsnum) =  10634
                   r(N) =  2000
           r(misscheck) =  1
@@ -2702,14 +2688,14 @@ scalars:
 
 macros:
       r(new_wgt_specs) : "x1 4.047597 -.9852036 x2 4.042108 -.9804696 x4 1.007822 -1021.008 x3 2.677725 -1021.755 2"
-          r(dstnegwgt) : "-3"
-          r(dstposwgt) : "3"
+          r(dstnegwgt) : "-1021.755"
+          r(dstposwgt) : "2.677725"
            r(dstradii) : "2"
             r(dstvars) : "x3"
-          r(mtcnegwgt) : "-1 -2 -5"
-          r(mtcposwgt) : "1 2 .1"
+          r(mtcnegwgt) : "-.9852036 -.9804696 -1021.008"
+          r(mtcposwgt) : "4.047597 4.042108 1.007822"
             r(mtcvars) : "x1 x2 x4"
-            r(cmdline) : "dtalink x1 1 -1 x2 2 -2 x3 3 -3 2 x4 .1 -5, cutoff(2) describe examples(16) calcweights(4)"
+            r(cmdline) : "dtalink x1 4.047597 -.9852036 x2 4.042108 -.9804696 x4 1.007822 -1021.008 x3 2.677725 -1021.755 2                , cutoff(2) descr.."
                 r(cmd) : "dtalink"
 
 matrices:
@@ -2845,7 +2831,7 @@ Examples (up to 16 rows):
   15. |        8      5     4.00    Matched   10    1    5     male    0    0    1   CA |
   16. |        8   1421     4.00    Matched   24    1    5   female    1    0    1   CA |
       +---------------------------------------------------------------------------------+
-  Time to run = .49 sec
+  Time to run = .51 sec
 
 . 
 . 
@@ -3003,7 +2989,7 @@ Examples (up to 16 rows):
      15. |       15      1     16    51.00    Matched |
      16. |       16      1     17    49.00    Matched |
          +--------------------------------------------+
-  Time to run = 15.89 sec
+  Time to run = 17.58 sec
 
 . 
 . * ----------- Lots of blocks example ----------
@@ -3107,7 +3093,7 @@ _matchflag      byte    %11.0g     _mtchflg   Match indicator
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------
 Sorted by: 
      Note: Dataset has changed since last saved.
-  Time to run = 68.74 sec
+  Time to run = 68.98 sec
 
 . 
 . restore, preserve
@@ -3179,7 +3165,7 @@ _matchflag      byte    %11.0g     _mtchflg   Match indicator
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------
 Sorted by: 
      Note: Dataset has changed since last saved.
-  Time to run = 1.01 sec
+  Time to run = 1.06 sec
 
 . 
 . restore, preserve
@@ -3220,7 +3206,7 @@ ic matching |
 ------------+------------+-----------------------------------------------------
       Total |    371,572 
 The current configuration of the data is: one row per record.
-  Time to run = 5.45 sec
+  Time to run = 5.49 sec
 
 . 
 . // audit scores to see if I'm getting right results
@@ -3282,7 +3268,7 @@ ic matching |
 ------------+------------+-----------------------------------------------------
       Total |    185,763 
 The current configuration of the data is: one row per matched pair.
-  Time to run = 1.29 sec
+  Time to run = 1.41 sec
 
 . 
 . // the first dtalink example above takes so long because the variable f makes huge blocks. See, this takes almost as long:
@@ -3346,7 +3332,7 @@ _matchflag      byte    %11.0g     _mtchflg   Match indicator
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------
 Sorted by: 
      Note: Dataset has changed since last saved.
-  Time to run = 62.41 sec
+  Time to run = 64.25 sec
 
 . 
 . // when you only have one block, the parallel prefix might speed things up:
@@ -3361,7 +3347,7 @@ Stata dir:  C:\Program Files (x86)\Stata15/StataMP-64.exe
 --------------------------------------------------------------------------------
 Parallel Computing with Stata (by GVY)
 Clusters   : 2
-pll_id     : pongk2kii9
+pll_id     : 1imngeb427
 Running at : C:\Users\kkranker\Documents\Stata\Ado\personal\d
 Randtype   : datetime
 Waiting for the clusters to finish...
@@ -3370,7 +3356,7 @@ cluster 0001 has exited without error...
 --------------------------------------------------------------------------------
 Enter -parallel printlog #- to checkout logfiles.
 --------------------------------------------------------------------------------
-  Time to run = 47.29 sec
+  Time to run = 48.09 sec
 .   tab  _score, plot
 
 Probabilist |
@@ -3388,7 +3374,10 @@ ic matching |
 . // EM example
 . restore, preserve
 
-. timer99: dtalink `v1_k' dob 20 0 30 dob 10 -5 365 , cutoff(5) block(blk1 | blk2 | blk3 ) wide noweighttable calcweights(2)
+. di as input "`v1_k'"
+var1 1 0 var2 1 0 var3 1 0 var4 1 0 var5 1 0 var6 1 0 var7 1 0 var8 1 0 var9 1 0 var10 1 0
+
+. dtalink `v1_k' dob 20 0 30 dob 10 -5 365 , cutoff(5) block(blk1 | blk2 | blk3 ) wide noweighttable calcweights
 Starting 9595 blocks for blocking set 1 of 3: blk1. Each dot is 100 blocks (95 dots total).
 ----+--- 1 ---+--- 2 ---+--- 3 ---+--- 4 ---+--- 5 
 ..................................................    50
@@ -3403,7 +3392,7 @@ Starting 9591 blocks for blocking set 3 of 3: blk3. Each dot is 100 blocks (95 d
 .............................................
   371572 matches were found.
 
-Matching weights (after loop 1)
+Suggested matching weights:
 -----------------------------------------------------------------------
                            | new_wgt_match  new_wgt_no_match    Caliper
 ---------------------------+-------------------------------------------
@@ -3412,17 +3401,47 @@ Caliper_matching_variables |
                        dob |      1022.000         -1022.000    365.000
 ---------------------------+-------------------------------------------
 Exact_matching_variables   |
-                      var1 |        -0.019             0.001          .
+                      var1 |         0.000             0.000          .
                       var2 |         0.053            -0.003          .
                       var3 |         0.134            -0.007          .
-                      var4 |        -0.059             0.003          .
+                      var4 |         0.000             0.000          .
                       var5 |         0.028            -0.001          .
                       var6 |         0.265            -0.013          .
                       var7 |         0.213            -0.010          .
-                      var8 |        -0.004             0.000          .
+                      var8 |         0.000             0.000          .
                       var9 |         0.074            -0.004          .
-                     var10 |        -0.197             0.011          .
+                     var10 |         0.000             0.000          .
 -----------------------------------------------------------------------
+
+Distribution of matched pair scores, among pairs with score >=5:
+
+Probabilist |
+ic matching |
+      score |      Freq.
+------------+------------+-----------------------------------------------------
+      10.00 |    189,683 |*****************************************************
+      11.00 |     99,542 |****************************
+      12.00 |     23,477 |*******
+      13.00 |      3,389 |*
+      14.00 |        304 |
+      15.00 |         25 |
+      30.00 |     33,063 |*********
+      31.00 |     17,291 |*****
+      32.00 |      4,187 |*
+      33.00 |        537 |
+      34.00 |         73 |
+      35.00 |          1 |
+------------+------------+-----------------------------------------------------
+      Total |    371,572 
+The current configuration of the data is: one row per matched pair.
+
+. di as input =r(new_wgt_specs)
+var1 0 0 var2 .0527341 -.0027017 var3 .1342802 -.0067659 var4 0 0 var5 .0275355 -.0014404 var6 .2645786 -.0126629 var7 .2131012 -.0102669 var8 0 0 var9 .0740583
+>  -.0037949 var10 0 0 dob 1019.248 -.2318018 30 dob 1022 -1022 365
+
+. restore, preserve
+
+. dtalink `r(new_wgt_specs)', cutoff(5) block(blk1 | blk2 | blk3 ) wide noweighttable calcweights
 Starting 9595 blocks for blocking set 1 of 3: blk1. Each dot is 100 blocks (95 dots total).
 ----+--- 1 ---+--- 2 ---+--- 3 ---+--- 4 ---+--- 5 
 ..................................................    50
@@ -3436,9 +3455,8 @@ Starting 9591 blocks for blocking set 3 of 3: blk3. Each dot is 100 blocks (95 d
 ..................................................    50
 .............................................
   371572 matches were found.
-No additinal matches found.
 
-Matching weights (after loop 2)
+Suggested matching weights:
 -----------------------------------------------------------------------
                            | new_wgt_match  new_wgt_no_match    Caliper
 ---------------------------+-------------------------------------------
@@ -3447,16 +3465,16 @@ Caliper_matching_variables |
                        dob |      1022.000         -1022.000    365.000
 ---------------------------+-------------------------------------------
 Exact_matching_variables   |
-                      var1 |        -0.019             0.001          .
+                      var1 |         0.000             0.000          .
                       var2 |         0.053            -0.003          .
                       var3 |         0.134            -0.007          .
-                      var4 |        -0.059             0.003          .
+                      var4 |         0.000             0.000          .
                       var5 |         0.028            -0.001          .
                       var6 |         0.265            -0.013          .
                       var7 |         0.213            -0.010          .
-                      var8 |        -0.004             0.000          .
+                      var8 |         0.000             0.000          .
                       var9 |         0.074            -0.004          .
-                     var10 |        -0.197             0.011          .
+                     var10 |         0.000             0.000          .
 -----------------------------------------------------------------------
 
 Distribution of matched pair scores, among pairs with score >=5:
@@ -3464,92 +3482,103 @@ Distribution of matched pair scores, among pairs with score >=5:
                 Probabilistic matching score
 -------------------------------------------------------------
       Percentiles      Smallest
- 1%     1021.538       1021.451
- 5%     1021.684       1021.455
-10%     1021.742       1021.455       Obs             371,572
-25%     1021.746       1021.455       Sum of Wgt.     371,572
+ 1%     1021.731       1021.731
+ 5%     1021.731       1021.731
+10%     1021.731       1021.731       Obs             371,572
+25%     1021.731       1021.731       Sum of Wgt.     371,572
 
-50%     1021.746                      Mean           1173.092
-                        Largest       Std. Dev.      362.4507
-75%     1021.887       2041.867
-90%     2041.226       2041.867       Variance       131370.5
-95%     2041.226       2041.867       Skewness        1.97776
-99%     2041.449       2041.945       Kurtosis       4.911535
+50%     1021.731                      Mean           1173.091
+                        Largest       Std. Dev.      362.4508
+75%     1021.872       2041.852
+90%      2041.21       2041.852       Variance       131370.5
+95%      2041.21       2041.852       Skewness        1.97776
+99%     2041.434        2041.93       Kurtosis       4.911535
 The current configuration of the data is: one row per matched pair.
-  Time to run = 4.89 sec
+
+. restore, preserve
+
+. di as input =r(new_wgt_specs)
+var1 0 0 var2 .0527341 -.0027017 var3 .1342802 -.0067659 var4 0 0 var5 .0275355 -.0014404 var6 .2645786 -.0126629 var7 .2131012 -.0102669 var8 0 0 var9 .0740583
+>  -.0037949 var10 0 0 dob 1019.248 -.2318018 30 dob 1022 -1022 365
+
+. dtalink `r(new_wgt_specs)', cutoff(5) block(blk1 | blk2 | blk3 ) wide noweighttable calcweights
+Starting 9595 blocks for blocking set 1 of 3: blk1. Each dot is 100 blocks (95 dots total).
+----+--- 1 ---+--- 2 ---+--- 3 ---+--- 4 ---+--- 5 
+..................................................    50
+.............................................
+Starting 9560 blocks for blocking set 2 of 3: blk2. Each dot is 100 blocks (95 dots total).
+----+--- 1 ---+--- 2 ---+--- 3 ---+--- 4 ---+--- 5 
+..................................................    50
+.............................................
+Starting 9591 blocks for blocking set 3 of 3: blk3. Each dot is 100 blocks (95 dots total).
+----+--- 1 ---+--- 2 ---+--- 3 ---+--- 4 ---+--- 5 
+..................................................    50
+.............................................
+  371572 matches were found.
+
+Suggested matching weights:
+-----------------------------------------------------------------------
+                           | new_wgt_match  new_wgt_no_match    Caliper
+---------------------------+-------------------------------------------
+Caliper_matching_variables |
+                       dob |      1019.248            -0.232     30.000
+                       dob |      1022.000         -1022.000    365.000
+---------------------------+-------------------------------------------
+Exact_matching_variables   |
+                      var1 |         0.000             0.000          .
+                      var2 |         0.053            -0.003          .
+                      var3 |         0.134            -0.007          .
+                      var4 |         0.000             0.000          .
+                      var5 |         0.028            -0.001          .
+                      var6 |         0.265            -0.013          .
+                      var7 |         0.213            -0.010          .
+                      var8 |         0.000             0.000          .
+                      var9 |         0.074            -0.004          .
+                     var10 |         0.000             0.000          .
+-----------------------------------------------------------------------
+
+Distribution of matched pair scores, among pairs with score >=5:
+
+                Probabilistic matching score
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%     1021.731       1021.731
+ 5%     1021.731       1021.731
+10%     1021.731       1021.731       Obs             371,572
+25%     1021.731       1021.731       Sum of Wgt.     371,572
+
+50%     1021.731                      Mean           1173.091
+                        Largest       Std. Dev.      362.4508
+75%     1021.872       2041.852
+90%      2041.21       2041.852       Variance       131370.5
+95%      2041.21       2041.852       Skewness        1.97776
+99%     2041.434        2041.93       Kurtosis       4.911535
+The current configuration of the data is: one row per matched pair.
 
 . 
-. restore
+. 
+. restore, preserve
 
-. timer99: dtalink `v1_k' dob 20 0 30 dob 10 -5 365 , cutoff(5) block(blk1 | blk2 | blk3 ) wide noweighttable source(f) calcweights(3)
-Starting 8461 blocks for blocking set 1 of 3: blk1. Each dot is 100 blocks (84 dots total).
-----+--- 1 ---+--- 2 ---+--- 3 ---+--- 4 ---+--- 5 
-..................................................    50
-..................................
-Starting 8381 blocks for blocking set 2 of 3: blk2. Each dot is 100 blocks (83 dots total).
-----+--- 1 ---+--- 2 ---+--- 3 ---+--- 4 ---+--- 5 
-..................................................    50
-.................................
-Starting 8425 blocks for blocking set 3 of 3: blk3. Each dot is 100 blocks (84 dots total).
-----+--- 1 ---+--- 2 ---+--- 3 ---+--- 4 ---+--- 5 
-..................................................    50
-..................................
-  185763 matches were found.
+. di as input "`v1_k'"
+var1 1 0 var2 1 0 var3 1 0 var4 1 0 var5 1 0 var6 1 0 var7 1 0 var8 1 0 var9 1 0 var10 1 0
 
-Matching weights (after loop 1)
------------------------------------------------------------------------
-                           | new_wgt_match  new_wgt_no_match    Caliper
----------------------------+-------------------------------------------
-Caliper_matching_variables |
-                       dob |      1019.245            -0.231     30.000
-                       dob |      1022.000         -1022.000    365.000
----------------------------+-------------------------------------------
-Exact_matching_variables   |
-                      var1 |      1017.676            -0.074          .
-                      var2 |      1017.664            -0.073          .
-                      var3 |      1017.680            -0.074          .
-                      var4 |      1017.686            -0.074          .
-                      var5 |      1017.693            -0.075          .
-                      var6 |      1017.668            -0.073          .
-                      var7 |      1017.660            -0.073          .
-                      var8 |      1017.689            -0.075          .
-                      var9 |      1017.663            -0.073          .
-                     var10 |      1017.665            -0.073          .
------------------------------------------------------------------------
-Starting 8461 blocks for blocking set 1 of 3: blk1. Each dot is 100 blocks (84 dots total).
-----+--- 1 ---+--- 2 ---+--- 3 ---+--- 4 ---+--- 5 
-..................................................    50
-..................................
-Starting 8381 blocks for blocking set 2 of 3: blk2. Each dot is 100 blocks (83 dots total).
-----+--- 1 ---+--- 2 ---+--- 3 ---+--- 4 ---+--- 5 
-..................................................    50
-.................................
-Starting 8425 blocks for blocking set 3 of 3: blk3. Each dot is 100 blocks (84 dots total).
-----+--- 1 ---+--- 2 ---+--- 3 ---+--- 4 ---+--- 5 
-..................................................    50
-..................................
-  185869 matches were found.
+. qui dtalink `v1_k' dob 20 0 30 dob 10 -5 365 , cutoff(5) block(blk1 | blk2 | blk3 ) wide noweighttable source(f) calcweights
 
-Matching weights (after loop 1)
------------------------------------------------------------------------
-                           | new_wgt_match  new_wgt_no_match    Caliper
----------------------------+-------------------------------------------
-Caliper_matching_variables |
-                       dob |      1019.245            -0.231     30.000
-                       dob |      1022.000           -11.776    365.000
----------------------------+-------------------------------------------
-Exact_matching_variables   |
-                      var1 |      1017.677            -0.074          .
-                      var2 |      1017.665            -0.073          .
-                      var3 |      1017.681            -0.074          .
-                      var4 |      1017.688            -0.075          .
-                      var5 |      1017.694            -0.075          .
-                      var6 |      1017.669            -0.074          .
-                      var7 |      1017.661            -0.073          .
-                      var8 |      1017.690            -0.075          .
-                      var9 |      1017.665            -0.073          .
-                     var10 |      1017.666            -0.073          .
------------------------------------------------------------------------
+. di as input =r(new_wgt_specs)
+var1 1017.676 -.0738841 var2 1017.664 -.0732631 var3 1017.68 -.074113 var4 1017.686 -.0744237 var5 1017.693 -.0748162 var6 1017.668 -.0734673 var7 1017.66 -.073
+> 0343 var8 1017.689 -.0745545 var9 1017.663 -.0732222 var10 1017.665 -.0733121 dob 1019.245 -.2313191 30 dob 1022 -1022 365
+
+. restore, preserve
+
+. qui dtalink `r(new_wgt_specs)', cutoff(5) block(blk1 | blk2 | blk3 ) wide noweighttable source(f) calcweights
+
+. di as input =r(new_wgt_specs)
+var1 1017.679 -.0740369 var2 1017.667 -.073408 var3 1017.683 -.0742412 var4 1017.69 -.0746089 var5 1017.695 -.0749195 var6 1017.669 -.0735468 var7 1017.662 -.07
+> 31794 var8 1017.692 -.074756 var9 1017.667 -.0733998 var10 1017.668 -.0734488 dob 1019.244 -.2311761 30 dob 1021.999 -10.77618 365
+
+. restore, preserve
+
+. dtalink `r(new_wgt_specs)', cutoff(5) block(blk1 | blk2 | blk3 ) wide noweighttable source(f) calcweights
 Starting 8461 blocks for blocking set 1 of 3: blk1. Each dot is 100 blocks (84 dots total).
 ----+--- 1 ---+--- 2 ---+--- 3 ---+--- 4 ---+--- 5 
 ..................................................    50
@@ -3564,60 +3593,25 @@ Starting 8425 blocks for blocking set 3 of 3: blk3. Each dot is 100 blocks (84 d
 ..................................
   186330 matches were found.
 
-Matching weights (after loop 1)
+Suggested matching weights:
 -----------------------------------------------------------------------
                            | new_wgt_match  new_wgt_no_match    Caliper
 ---------------------------+-------------------------------------------
 Caliper_matching_variables |
-                       dob |      1019.243            -0.231     30.000
-                       dob |      1021.998            -9.696    365.000
+                       dob |      1019.241            -0.231     30.000
+                       dob |      1021.996            -8.360    365.000
 ---------------------------+-------------------------------------------
 Exact_matching_variables   |
-                      var1 |      1017.679            -0.074          .
-                      var2 |      1017.667            -0.073          .
-                      var3 |      1017.683            -0.074          .
-                      var4 |      1017.690            -0.075          .
-                      var5 |      1017.696            -0.075          .
-                      var6 |      1017.670            -0.074          .
-                      var7 |      1017.662            -0.073          .
-                      var8 |      1017.692            -0.075          .
-                      var9 |      1017.667            -0.073          .
-                     var10 |      1017.669            -0.074          .
------------------------------------------------------------------------
-Starting 8461 blocks for blocking set 1 of 3: blk1. Each dot is 100 blocks (84 dots total).
-----+--- 1 ---+--- 2 ---+--- 3 ---+--- 4 ---+--- 5 
-..................................................    50
-..................................
-Starting 8381 blocks for blocking set 2 of 3: blk2. Each dot is 100 blocks (83 dots total).
-----+--- 1 ---+--- 2 ---+--- 3 ---+--- 4 ---+--- 5 
-..................................................    50
-.................................
-Starting 8425 blocks for blocking set 3 of 3: blk3. Each dot is 100 blocks (84 dots total).
-----+--- 1 ---+--- 2 ---+--- 3 ---+--- 4 ---+--- 5 
-..................................................    50
-..................................
-  186330 matches were found.
-No additinal matches found.
-
-Matching weights (after loop 3)
------------------------------------------------------------------------
-                           | new_wgt_match  new_wgt_no_match    Caliper
----------------------------+-------------------------------------------
-Caliper_matching_variables |
-                       dob |      1019.243            -0.231     30.000
-                       dob |      1021.998            -9.230    365.000
----------------------------+-------------------------------------------
-Exact_matching_variables   |
-                      var1 |      1017.680            -0.074          .
-                      var2 |      1017.668            -0.073          .
-                      var3 |      1017.683            -0.074          .
-                      var4 |      1017.691            -0.075          .
-                      var5 |      1017.697            -0.075          .
-                      var6 |      1017.670            -0.074          .
-                      var7 |      1017.663            -0.073          .
-                      var8 |      1017.693            -0.075          .
-                      var9 |      1017.667            -0.073          .
-                     var10 |      1017.670            -0.074          .
+                      var1 |      1017.683            -0.074          .
+                      var2 |      1017.671            -0.074          .
+                      var3 |      1017.685            -0.074          .
+                      var4 |      1017.694            -0.075          .
+                      var5 |      1017.699            -0.075          .
+                      var6 |      1017.672            -0.074          .
+                      var7 |      1017.665            -0.073          .
+                      var8 |      1017.695            -0.075          .
+                      var9 |      1017.670            -0.074          .
+                     var10 |      1017.673            -0.074          .
 -----------------------------------------------------------------------
 
 Distribution of matched pair scores, among pairs with score >=5:
@@ -3625,30 +3619,27 @@ Distribution of matched pair scores, among pairs with score >=5:
                 Probabilistic matching score
 -------------------------------------------------------------
       Percentiles      Smallest
- 1%     1021.028       1007.069
- 5%     1021.028       1007.069
-10%     1021.028       1007.069       Obs             186,330
-25%     1021.028       1007.069       Sum of Wgt.     186,330
+ 1%     1021.028       1005.988
+ 5%     1021.028       1005.988
+10%     1021.028       1005.988       Obs             186,330
+25%     1021.028       1005.988       Sum of Wgt.     186,330
 
-50%     1021.028                      Mean           1678.275
-                        Largest       Std. Dev.      790.4275
-75%     2038.794       6111.533
-90%     3056.532       6111.535       Variance       624775.6
-95%     3058.245       6111.536       Skewness        1.12309
-99%     4075.999       7129.235       Kurtosis       4.079695
+50%     1021.028                      Mean           1678.272
+                        Largest       Std. Dev.      790.4293
+75%     2038.795       6111.534
+90%     3056.533       6111.536       Variance       624778.5
+95%     3058.246       6111.538       Skewness       1.123086
+99%     4076.001       7129.235       Kurtosis        4.07968
 The current configuration of the data is: one row per matched pair.
-  Time to run = 6.63 sec
 
 . 
 . return list
 
 scalars:
-                r(t99) =  6.629
-               r(nt99) =  1
-         r(scores_max) =  7129.234684192759
-         r(scores_min) =  1007.069252697875
-          r(scores_sd) =  790.4274590777134
-        r(scores_mean) =  1678.274557998287
+         r(scores_max) =  7129.235014100001
+         r(scores_min) =  1005.988278
+          r(scores_sd) =  790.4293115861628
+        r(scores_mean) =  1678.271996168664
            r(pairsnum) =  186330
                  r(N1) =  25096
                  r(N0) =  24904
@@ -3657,16 +3648,16 @@ scalars:
            r(numfiles) =  2
 
 macros:
-      r(new_wgt_specs) : "var1 1017.68 -.0741087 var2 1017.668 -.0734784 var3 1017.683 -.0742781 var4 1017.691 -.0746719 var5 1017.697 -.0749985 var6 1017.6.."
+      r(new_wgt_specs) : "var1 1017.683 -.0742565 var2 1017.671 -.0736209 var3 1017.685 -.0743788 var4 1017.694 -.0748272 var5 1017.699 -.0751289 var6 1017..."
           r(blockvars) : "blk1 | blk2 | blk3"
-          r(dstnegwgt) : "0 -5"
-          r(dstposwgt) : "20 10"
+          r(dstnegwgt) : "-.2311761 -10.77618"
+          r(dstposwgt) : "1019.244 1021.999"
            r(dstradii) : "30 365"
             r(dstvars) : "dob dob"
-          r(mtcnegwgt) : "0 0 0 0 0 0 0 0 0 0"
-          r(mtcposwgt) : "1 1 1 1 1 1 1 1 1 1"
+          r(mtcnegwgt) : "-.0740369 -.073408 -.0742412 -.0746089 -.0749195 -.0735468 -.0731794 -.074756 -.0733998 -.0734488"
+          r(mtcposwgt) : "1017.679 1017.667 1017.683 1017.69 1017.695 1017.669 1017.662 1017.692 1017.667 1017.668"
             r(mtcvars) : "var1 var2 var3 var4 var5 var6 var7 var8 var9 var10"
-            r(cmdline) : "dtalink var1 1 0 var2 1 0 var3 1 0 var4 1 0 var5 1 0 var6 1 0 var7 1 0 var8 1 0 var9 1 0 var10 1 0 dob 20 0 30 dob 10 -5 365 , cut.."
+            r(cmdline) : "dtalink var1 1017.679 -.0740369 var2 1017.667 -.073408 var3 1017.683 -.0742412 var4 1017.69 -.0746089 var5 1017.695 -.0749195 var6.."
                 r(cmd) : "dtalink"
 
 matrices:
@@ -3681,5 +3672,5 @@ matrices:
       name:  dtalink_example
        log:  C:\Users\kkranker\Documents\Stata\Ado\personal\d\dtalink_example.log
   log type:  text
- closed on:  27 Aug 2018, 20:41:01
+ closed on:  13 Feb 2019, 09:45:09
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------

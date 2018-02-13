@@ -1,4 +1,4 @@
-*! $Id: dtalink.ado,v ef60d24f466f 2019/02/13 03:41:09 kkranker $
+*! $Id: dtalink.ado,v 4b6216cc2d41 2019/02/13 16:40:49 kkranker $
 *! Probabilistic record linkage or deduplication
 *
 *  dtalink implements probabilistic record linkage (a.k.a. probabilistic matching) for two cases:
@@ -13,7 +13,7 @@
 *  datasets. The computationally-heavy parts of the program are implemented in Mata subroutines.
 *
 *! By Keith Kranker
-*! $Date: 2019/02/13 03:41:09 $
+*! $Date: 2019/02/13 16:40:49 $
 *
 * dtalink.sthlp includes a full description of the command, the command's sytnax, and description of each outcome.
 *
@@ -445,7 +445,7 @@ program define dtalink, rclass
   if (`calcweights') {
     tempname wtab
     local lastN = r(pairsnum)
-    di as txt _n "Re-calculate matching weights"
+    di as txt _n "Suggested matching weights:"
     mata: `D'.newweights()
     matrix `wtab' = r(new_weights)
     return add
@@ -1619,11 +1619,13 @@ void dtalink::newweights(| real scalar trim)
     p1 = rowmax(( (mtc_runsum_1' :/ runsum_1_N) , J(mtc_num,1,trim) ))
     p2 = rowmax(( (mtc_runsum_0' :/ runsum_0_N) , J(mtc_num,1,trim) ))
     new_mtc_poswgt = (1 / log(2)) :* (log(p1) :- log (p2))
+    new_mtc_poswgt = rowmax((new_mtc_poswgt, J(mtc_num,1,0))) // don't allow negative numbers
     //DEBUG// if (debug) "new_mtc_poswgt  is " + strofreal(rows(new_mtc_poswgt)) + " by " + strofreal(cols(new_mtc_poswgt))
 
     p1 = rowmax(( (J(mtc_num,1,1) :- p1), J(mtc_num,1,trim)))
     p2 = rowmax(( (J(mtc_num,1,1) :- p2), J(mtc_num,1,trim)))
     new_mtc_negwgt = (1 / log(2)) :* (log(p1) :- log (p2))
+    new_mtc_negwgt = rowmin((new_mtc_negwgt, J(mtc_num,1,0))) // don't allow positive numbers
     //DEBUG// if (debug) "new_mtc_negwgt  is " + strofreal(rows(new_mtc_negwgt)) + " by " + strofreal(cols(new_mtc_negwgt))
 
     for (c=1;c<=mtc_num;c++) {
