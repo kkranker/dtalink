@@ -1,4 +1,4 @@
-*! $Id: dtalink.ado,v b881ee7bd9cf 2018/07/20 05:04:09 kkranker $
+*! $Id: dtalink.ado,v 4b6216cc2d41 2019/02/13 16:40:49 kkranker $
 *! Probabilistic record linkage or deduplication
 *
 *  dtalink implements probabilistic record linkage (a.k.a. probabilistic matching) for two cases:
@@ -13,7 +13,7 @@
 *  datasets. The computationally-heavy parts of the program are implemented in Mata subroutines.
 *
 *! By Keith Kranker
-*! $Date: 2018/07/20 05:04:09 $
+*! $Date: 2019/02/13 16:40:49 $
 *
 * dtalink.sthlp includes a full description of the command, the command's sytnax, and description of each outcome.
 *
@@ -40,7 +40,6 @@ program define dtalink, rclass
     Block(string)           /// declares blocking variables.  If multiple variables listed, each unique combinations of the variables is considered a block.  (No variable name abbreviations allowed.)
                             ///     To specify multiple sets of blocks, separate blocking variables with "|", such as block(bvar1 | bvar2 bvar3 | bvar4)
     CALcweights             /// calculate weights
-    CALcweightsnum(numlist integer max=1 >0) /// calculate weights and re-run
     BESTmatch               /// drop 2nd-best matches.  See notes below.
     SRCBESTmatch(integer -1) /// drop 2nd-best matches for source=0 observations or source=1 observations (but not both). See notes below.
     COMBINEsets             /// creates extra large groups that may contain more than one id(). See notes below.
@@ -81,7 +80,7 @@ program define dtalink, rclass
     confirm new variable _file
     local   source _file
     append `using', generate(`source') `label' `notes'
-    label define `source' 0 "master" 1 "using", add
+    cap label define `source' 0 "master" 1 "using", add
     label val `source' `source'
     label var `source' "0=master; 1=using"
     return local using `"`using'"'
@@ -301,10 +300,7 @@ program define dtalink, rclass
       confirm var `blockvars', exact
     }
   }
-  if ("`calcweights'"=="calcweights" & "`calcweightsnum'"=="") local calcweightsnum = 1
-  else if ("`calcweightsnum'"!="" & "`calcweightsnum'"!="0")   local calcweights calcweights
-  else                                                         local calcweightsnum=0
-
+  local calcweights = ("`calcweights'"=="calcweights") // switch to dummy
 
   // print matching variables to screen
   if ("`weighttable'"!="noweighttable") {
@@ -437,7 +433,7 @@ program define dtalink, rclass
   qui keep in 1
 
   // run the linkage
-  mata: `D'.probabilisticlink(`calcweightsnum')
+  mata: `D'.probabilisticlink(`calcweights')
 
   // remove duplicates, sort, assign IDs
   mata: `D'.dedup("`allscores'"=="")
@@ -446,29 +442,14 @@ program define dtalink, rclass
   // Re-calucate weights using the pairs that were found,
   // and then re-run matching and recalculate weights.
   // Repeat until no matches are found or the maximum number of loops is reached.
-  if (`calcweightsnum') {
+  if (`calcweights') {
     tempname wtab
     local lastN = r(pairsnum)
-    local E: copy local calcweightsnum
-    while (`E') {
-      di as txt _n "Matching weights (after loop `=`calcweightsnum'-`E'+1')"
-      mata: `D'.newweights()
-      matrix `wtab' = r(new_weights)
-      return add
-      _matrix_table `wtab', format(%9.3f %9.3f `=cond(trim("`calipvars'")!="","%9.3f","")')
-      if (`E'==1) continue, break
-      mata: `D'.updateweights(`D'.new_mtc_poswgt, `D'.new_mtc_negwgt, `D'.new_dst_poswgt, `D'.new_dst_negwgt)
-      mata: `D'.clearpairs()
-      mata: `D'.probabilisticlink(`calcweightsnum')
-      mata: `D'.dedup("`allscores'"=="")
-      mata: `D'.assign()
-      if (`lastN'==r(pairsnum) & `E'>1) {
-        di as txt "No additinal matches found."
-        local E=1
-      }
-      local lastN = r(pairsnum)
-    }
-    local --E
+    di as txt _n "Suggested matching weights:"
+    mata: `D'.newweights()
+    matrix `wtab' = r(new_weights)
+    return add
+    _matrix_table `wtab', format(%9.3f %9.3f `=cond(trim("`calipvars'")!="","%9.3f","")')
   }
 
   // deal with case of no matches found
@@ -617,7 +598,7 @@ program define dtalink, rclass
   else {
     gen byte _matchflag=1
   }
-  label define _mtchflg     1 "Matched" 0 "Not matched"
+  cap label define _mtchflg     1 "Matched" 0 "Not matched"
   label val    _matchflag _mtchflg
   label var    _matchflag   "Match indicator"
 
@@ -1404,11 +1385,11 @@ void dtalink::bestmatch()
   (void) _sort(pairs, (-3,1,2,4))    // <-- key difference between dtalink::bestmatch() and dtalink2::bestmatch()
 
   // this is a vector of dummies: 1 ---> keep row, 0 --> drop row
-  // first row is okay because of sort and we know there are >=1 rows in dataset
+  // first row is okay because of sort and we know there are >1 rows in pairs
   keepflag = J(pairsnum,1,.)
   keepflag[1] = 1
 
-  // loop through rows in dataset, updating _dropflag variable file as we go
+  // loop through rows in pairs, updating _dropflag variable file as we go
   for (i=2; i<=pairsnum; i++) {
 
     // if lID has been matched before or rID has been matched before, ignore the match
@@ -1471,11 +1452,11 @@ void dtalink2::bestmatch(| real scalar srcbestmatch)
     (void) _sort(pairs, (-3,2,1,4))    // <-- key difference between dtalink::bestmatch() and dtalink2::bestmatch()
 
     // this is a vector of dummies: 1 ---> keep row, 0 --> drop row
-    // first row is okay because of sort and we know there are >=1 rows in dataset
+    // first row is okay because of sort and we know there are >1 rows in pairs
     keepflag = J(pairsnum,1,.)
     keepflag[1] = 1
 
-    // loop through rows in dataset, updating _dropflag variable file as we go
+    // loop through rows in pairs, updating _dropflag variable file as we go
     real scalar i,j
     for (i=2; i<=pairsnum; i++) {
 
@@ -1638,11 +1619,13 @@ void dtalink::newweights(| real scalar trim)
     p1 = rowmax(( (mtc_runsum_1' :/ runsum_1_N) , J(mtc_num,1,trim) ))
     p2 = rowmax(( (mtc_runsum_0' :/ runsum_0_N) , J(mtc_num,1,trim) ))
     new_mtc_poswgt = (1 / log(2)) :* (log(p1) :- log (p2))
+    new_mtc_poswgt = rowmax((new_mtc_poswgt, J(mtc_num,1,0))) // don't allow negative numbers
     //DEBUG// if (debug) "new_mtc_poswgt  is " + strofreal(rows(new_mtc_poswgt)) + " by " + strofreal(cols(new_mtc_poswgt))
 
     p1 = rowmax(( (J(mtc_num,1,1) :- p1), J(mtc_num,1,trim)))
     p2 = rowmax(( (J(mtc_num,1,1) :- p2), J(mtc_num,1,trim)))
     new_mtc_negwgt = (1 / log(2)) :* (log(p1) :- log (p2))
+    new_mtc_negwgt = rowmin((new_mtc_negwgt, J(mtc_num,1,0))) // don't allow positive numbers
     //DEBUG// if (debug) "new_mtc_negwgt  is " + strofreal(rows(new_mtc_negwgt)) + " by " + strofreal(cols(new_mtc_negwgt))
 
     for (c=1;c<=mtc_num;c++) {

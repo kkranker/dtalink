@@ -1,5 +1,5 @@
 {smcl}
-{* $Id: dtalink.sthlp,v a7f00d9abef8 2018/07/31 04:28:39 kkranker $}{...}
+{* $Id: dtalink.sthlp,v ef60d24f466f 2019/02/13 03:41:09 kkranker $}{...}
 {* Copyright (C) Mathematica Policy Research, Inc. This code cannot be copied, distributed or used without the express written permission of Mathematica Policy Research, Inc.}{...}
 {vieweralsosee "" "--"}{...}
 {vieweralsosee "append" "help append"}{...}
@@ -47,7 +47,7 @@ If a caliper is not specified, exact matching is used.{p_end}
 {synopt:{opt cut:off(#)}}determines the minimum score required to keep matched pairs; the default is cutoff(0){p_end}
 {synopt:{opt id(varname)}}identifies unique cases to be matched; use if there is more than one record (row) per case{p_end}
 {synopt:{opt b:lock(blockvars)}}declares blocking variables{p_end}
-{synopt:{opt calc:weights}{it:[(#)]}}recommends weights for next run and, optionally, re-runs linking{p_end}
+{synopt:{opt calc:weights}}recommends weights for next run{p_end}
 {synopt:{opt best:match}}enables 1:1 linking{p_end}
 {synopt:{opt srcbest:match(0|1)}}enables 1:M or M:1 linking{p_end}
 {synopt:{opt combine:sets}}creates groups that may contain more than three cases{p_end}
@@ -164,7 +164,7 @@ The blocking variables will usually also be included in the list of matching var
 {phang}{opt calcweights} recommends weights for a following run.
 When conducting the linking, this option tracks the percentage of times a variable matches,
 separately for potential match pairs above and below the cutoff.
-After the linking, it uses these percentages to compute recommended weights (for the next run){p_end}
+After the linking, it uses these percentages to compute recommended weights (for a re-run, perhaps){p_end}
 
 {pmore}Weights are calculated as follows:{p_end}
 {phang3}r(new_dst_poswgt) = log_2(p1/p2){p_end}
@@ -174,11 +174,6 @@ p2 is the percentage of times the variable matched among nonmatches (using the c
 
 {pmore}This option is more computationally intensive than the default (not performing these calculations);
 specifying it could more than double runtimes.{p_end}
-
-{pmore}{opt calcweights(#)} will run data linking or deduplication a total of # times.
-The first run is with the user-specified weights, and remaining runs are
-with the recommended weights.  This is an experimental option.
-It is recommended to link (or deduplicate files one step at a time, checking the results, weights, and cutoffs each step.  {p_end}
 
 {phang}{opt bestmatch} enables 1:1 linking to avoid cases where an {cmd:id} is assigned to multiple _matchIDs.
 After running this subroutine, each {cmd:id} will be assigned to no more than one _matchID.
@@ -454,7 +449,7 @@ For example, the following code will give a score of +10/-7 for matches/nonmatch
 {pstd}By Keith Kranker{break}
 Mathematica Policy Research{p_end}
 
-{pstd}This help file last updated $Date: 2018/07/31 04:28:39 ${p_end}
+{pstd}This help file last updated $Date: 2019/02/13 03:41:09 ${p_end}
 
 {pstd}I thank Liz Potamites for testing early versions of the program and providing helpful feedback.{p_end}
 
@@ -520,7 +515,7 @@ Mathematica Policy Research{p_end}
 {synopt:{cmd:r(N1)}}           number of observations in file 1{p_end}
 
 {synoptset 20 tabbed}{...}
-{p2col 5 20 24 2: Additional results when calcweights[(#)] is specified}{p_end}
+{p2col 5 20 24 2: Additional results when calcweights is specified}{p_end}
 {synopt:{cmd:r(new_wgt_specs)}}  code snippet to implement recommended weights on next re-run{p_end}
 {synopt:{cmd:r(new_mtc_poswgt)}} recommended (positive) weights for matches on exact matching variables{p_end}
 {synopt:{cmd:r(new_mtc_negwgt)}} recommended (negative) weights for nonmatches on exact matching variables{p_end}

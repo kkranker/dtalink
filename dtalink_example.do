@@ -5,13 +5,13 @@ cls
 set linesize 160
 cap nois log using "dtalink_example.log", replace name(dtalink_example)
 
-*! $Id: dtalink_example.do,v a7f00d9abef8 2018/07/31 04:28:39 kkranker $
+*! $Id: dtalink_example.do,v 4b6216cc2d41 2019/02/13 16:40:49 kkranker $
 *! Probabilistic record linkage routine - examples
 *!
 *! This progam shows how the dtalink command might be used.
 *!
 *! By Keith Kranker
-*! $Date: 2018/07/31 04:28:39 $
+*! $Date: 2019/02/13 16:40:49 $
 *
 * Copyright (C) Mathematica Policy Research, Inc. This code cannot be copied, distributed or used without the express written permission of Mathematica Policy Research, Inc.
 
@@ -164,6 +164,20 @@ cap nois {
 }
 
 
+***************************************
+* Trivial example
+***************************************
+
+clear
+set obs 10
+set seed 1
+gen byte file = _n <= .45*_N
+gen int var1 = floor(runiform()*3) if runiform()<.75
+tab var1 file, mi
+dtalink var1 1 0 var1 1 0 0, source(file) wide cutoff(1)
+list
+
+
 *********************************************
 * Example with fake "birth certificate" data
 *********************************************
@@ -314,7 +328,15 @@ restore, preserve
 timer99: dtalink x1 1 -1 x2 2 -2 x3 3 -3 x4 .1 -5        , cutoff(4) block(b1 b2 | b3 | b1 b3 | b2 b4) wide describe examples(16)
 
 restore, preserve
-dtalink x1 1 -1 x2 2 -2 x3 3 -3 2 x4 .1 -5, cutoff(2) describe examples(16) calcweights(4)
+qui {
+dtalink x1 1 -1 x2 2 -2 x3 3 -3 2 x4 .1 -5, cutoff(2) describe examples(16) calcweights
+restore, preserve
+dtalink `r(new_wgt_specs)'                , cutoff(2) describe examples(16) calcweights
+restore, preserve
+dtalink `r(new_wgt_specs)'                , cutoff(2) describe examples(16) calcweights
+restore, preserve
+}
+dtalink `r(new_wgt_specs)'                , cutoff(2) describe examples(16) calcweights
 return list
 
 * ----------- with missing data ----------
@@ -402,10 +424,25 @@ cap nois {
 
 // EM example
 restore, preserve
-timer99: dtalink `v1_k' dob 20 0 30 dob 10 -5 365 , cutoff(5) block(blk1 | blk2 | blk3 ) wide noweighttable calcweights(2)
+di as input "`v1_k'"
+dtalink `v1_k' dob 20 0 30 dob 10 -5 365 , cutoff(5) block(blk1 | blk2 | blk3 ) wide noweighttable calcweights
+di as input =r(new_wgt_specs)
+restore, preserve
+dtalink `r(new_wgt_specs)', cutoff(5) block(blk1 | blk2 | blk3 ) wide noweighttable calcweights
+restore, preserve
+di as input =r(new_wgt_specs)
+dtalink `r(new_wgt_specs)', cutoff(5) block(blk1 | blk2 | blk3 ) wide noweighttable calcweights
 
-restore
-timer99: dtalink `v1_k' dob 20 0 30 dob 10 -5 365 , cutoff(5) block(blk1 | blk2 | blk3 ) wide noweighttable source(f) calcweights(3)
+
+restore, preserve
+di as input "`v1_k'"
+qui dtalink `v1_k' dob 20 0 30 dob 10 -5 365 , cutoff(5) block(blk1 | blk2 | blk3 ) wide noweighttable source(f) calcweights
+di as input =r(new_wgt_specs)
+restore, preserve
+qui dtalink `r(new_wgt_specs)', cutoff(5) block(blk1 | blk2 | blk3 ) wide noweighttable source(f) calcweights
+di as input =r(new_wgt_specs)
+restore, preserve
+dtalink `r(new_wgt_specs)', cutoff(5) block(blk1 | blk2 | blk3 ) wide noweighttable source(f) calcweights
 
 return list
 
