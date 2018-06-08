@@ -2,16 +2,16 @@
       name:  dtalink_example
        log:  C:\Users\kkranker\Documents\Stata\Ado\personal\d\dtalink_example.log
   log type:  text
- opened on:  30 Jul 2018, 22:22:39
+ opened on:  27 Aug 2018, 20:37:15
 
 . 
-. *! $Id: dtalink_example.do,v 8287baa7ffdd 2018/07/20 04:39:39 kkranker $
+. *! $Id: dtalink_example.do,v a7f00d9abef8 2018/07/31 04:28:39 kkranker $
 . *! Probabilistic record linkage routine - examples
 . *!
 . *! This progam shows how the dtalink command might be used.
 . *!
 . *! By Keith Kranker
-. *! $Date: 2018/07/20 04:39:39 $
+. *! $Date: 2018/07/31 04:28:39 $
 . *
 . * Copyright (C) Mathematica Policy Research, Inc. This code cannot be copied, distributed or used without the express written permission of Mathematica Policy
 >  Research, Inc.
@@ -20,11 +20,11 @@
 C:\Users\kkranker\Documents\Stata\Ado\personal\d
 
 . which dtalink
-C:\Users\kkranker\Documents\Stata\Ado\personal\d\dtalink.ado
-*! $Id: dtalink.ado,v b881ee7bd9cf 2018/07/20 05:04:09 kkranker $
+C:\Users\kkranker\Documents\Stata\Ado\Personal\d\dtalink.ado
+*! $Id: dtalink.ado,v f92c3c1d6258 2018/08/28 02:32:28 kkranker $
 *! Probabilistic record linkage or deduplication
 *! By Keith Kranker
-*! $Date: 2018/07/20 05:04:09 $
+*! $Date: 2018/08/28 02:32:28 $
 *! Mata Source Code
 *! Defines classes which are called by dtalink.ado
 *! dtalink is the parent class and includes shared functions
@@ -1475,7 +1475,7 @@ The current configuration of the data is: one row per record.
 . drop file
 
 . save "`file2'"
-file C:\Users\kkranker\AppData\Local\Temp\ST_5ec8_000002.tmp saved
+file C:\Users\kkranker\AppData\Local\Temp\ST_3990_000002.tmp saved
 
 . 
 . restore, preserve
@@ -1557,12 +1557,12 @@ Stata dir:  C:\Program Files (x86)\Stata15/StataMP-64.exe
 --------------------------------------------------------------------------------
 Parallel Computing with Stata (by GVY)
 Clusters   : 2
-pll_id     : z1imlhnff1
+pll_id     : cne7r5uk37
 Running at : C:\Users\kkranker\Documents\Stata\Ado\personal\d
 Randtype   : datetime
 Waiting for the clusters to finish...
-cluster 0001 has exited without error...
 cluster 0002 has exited without error...
+cluster 0001 has exited without error...
 --------------------------------------------------------------------------------
 Enter -parallel printlog #- to checkout logfiles.
 --------------------------------------------------------------------------------
@@ -1576,6 +1576,75 @@ ic matching |
 ------------+------------+-----------------------------------------------------
       Total |         48 
 . }
+
+. 
+. 
+. ***************************************
+. * Trivial example
+. ***************************************
+. 
+. clear
+
+. set obs 10
+number of observations (_N) was 0, now 10
+
+. set seed 1
+
+. gen byte file = _n <= .45*_N
+
+. gen int var1 = floor(runiform()*3) if runiform()<.75
+(2 missing values generated)
+
+. tab var1 file, mi
+
+           |         file
+      var1 |         0          1 |     Total
+-----------+----------------------+----------
+         0 |         1          3 |         4 
+         1 |         3          0 |         3 
+         2 |         0          1 |         1 
+         . |         2          0 |         2 
+-----------+----------------------+----------
+     Total |         6          4 |        10 
+
+
+. dtalink var1 1 0 var1 1 0 0, source(file) wide cutoff(1)
+
+------------------------------------------------------------------------------
+Usage type and variable    |
+name                       |    Match weight  No match weight          Caliper
+---------------------------+--------------------------------------------------
+Blocking variables         |
+                    (None) |                                                 0
+---------------------------+--------------------------------------------------
+Caliper matching variables |
+                  var1 (1) |               1                0                0
+---------------------------+--------------------------------------------------
+Exact matching variables   |
+                  var1 (2) |               1                0                0
+------------------------------------------------------------------------------
+  3 matches were found.
+
+Distribution of matched pair scores, among pairs with score >=1:
+
+Probabilist |
+ic matching |
+      score |      Freq.
+------------+------------+-----------------------------------------------------
+       2.00 |          3 |***
+------------+------------+-----------------------------------------------------
+      Total |          3 
+The current configuration of the data is: one row per matched pair.
+
+. list
+
+     +--------------------------------------------+
+     | _matchID   _id0   _id1   _score   _match~g |
+     |--------------------------------------------|
+  1. |        1      9      1     2.00    Matched |
+  2. |        2      9      2     2.00    Matched |
+  3. |        3      9      4     2.00    Matched |
+     +--------------------------------------------+
 
 . 
 . 
@@ -2393,7 +2462,7 @@ Examples (up to 16 rows):
   15. |        8      7     4.10    Matched   14   18    4     male    1    0    0   CA |
   16. |        8    457     4.10    Matched   20   18    4     male    0    1    1   TX |
       +---------------------------------------------------------------------------------+
-  Time to run = .37 sec
+  Time to run = .42 sec
 
 . 
 . restore, preserve
@@ -2496,7 +2565,7 @@ Examples (up to 16 rows):
      |--------------------------------------------|
  16. |       16     17     70     4.10    Matched |
      +--------------------------------------------+
-  Time to run = .79 sec
+  Time to run = .71 sec
 
 . 
 . restore, preserve
@@ -2776,7 +2845,7 @@ Examples (up to 16 rows):
   15. |        8      5     4.00    Matched   10    1    5     male    0    0    1   CA |
   16. |        8   1421     4.00    Matched   24    1    5   female    1    0    1   CA |
       +---------------------------------------------------------------------------------+
-  Time to run = 1.2 sec
+  Time to run = .49 sec
 
 . 
 . 
@@ -2934,7 +3003,7 @@ Examples (up to 16 rows):
      15. |       15      1     16    51.00    Matched |
      16. |       16      1     17    49.00    Matched |
          +--------------------------------------------+
-  Time to run = 15.6 sec
+  Time to run = 15.89 sec
 
 . 
 . * ----------- Lots of blocks example ----------
@@ -3038,7 +3107,7 @@ _matchflag      byte    %11.0g     _mtchflg   Match indicator
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------
 Sorted by: 
      Note: Dataset has changed since last saved.
-  Time to run = 60.87 sec
+  Time to run = 68.74 sec
 
 . 
 . restore, preserve
@@ -3110,7 +3179,7 @@ _matchflag      byte    %11.0g     _mtchflg   Match indicator
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------
 Sorted by: 
      Note: Dataset has changed since last saved.
-  Time to run = 1.07 sec
+  Time to run = 1.01 sec
 
 . 
 . restore, preserve
@@ -3151,7 +3220,7 @@ ic matching |
 ------------+------------+-----------------------------------------------------
       Total |    371,572 
 The current configuration of the data is: one row per record.
-  Time to run = 5.84 sec
+  Time to run = 5.45 sec
 
 . 
 . // audit scores to see if I'm getting right results
@@ -3213,7 +3282,7 @@ ic matching |
 ------------+------------+-----------------------------------------------------
       Total |    185,763 
 The current configuration of the data is: one row per matched pair.
-  Time to run = 1.3 sec
+  Time to run = 1.29 sec
 
 . 
 . // the first dtalink example above takes so long because the variable f makes huge blocks. See, this takes almost as long:
@@ -3277,7 +3346,7 @@ _matchflag      byte    %11.0g     _mtchflg   Match indicator
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------
 Sorted by: 
      Note: Dataset has changed since last saved.
-  Time to run = 60.99 sec
+  Time to run = 62.41 sec
 
 . 
 . // when you only have one block, the parallel prefix might speed things up:
@@ -3292,7 +3361,7 @@ Stata dir:  C:\Program Files (x86)\Stata15/StataMP-64.exe
 --------------------------------------------------------------------------------
 Parallel Computing with Stata (by GVY)
 Clusters   : 2
-pll_id     : 8ko63pfux3
+pll_id     : pongk2kii9
 Running at : C:\Users\kkranker\Documents\Stata\Ado\personal\d
 Randtype   : datetime
 Waiting for the clusters to finish...
@@ -3301,7 +3370,7 @@ cluster 0001 has exited without error...
 --------------------------------------------------------------------------------
 Enter -parallel printlog #- to checkout logfiles.
 --------------------------------------------------------------------------------
-  Time to run = 44.37 sec
+  Time to run = 47.29 sec
 .   tab  _score, plot
 
 Probabilist |
@@ -3407,7 +3476,7 @@ Distribution of matched pair scores, among pairs with score >=5:
 95%     2041.226       2041.867       Skewness        1.97776
 99%     2041.449       2041.945       Kurtosis       4.911535
 The current configuration of the data is: one row per matched pair.
-  Time to run = 5.28 sec
+  Time to run = 4.89 sec
 
 . 
 . restore
@@ -3568,13 +3637,13 @@ Distribution of matched pair scores, among pairs with score >=5:
 95%     3058.245       6111.536       Skewness        1.12309
 99%     4075.999       7129.235       Kurtosis       4.079695
 The current configuration of the data is: one row per matched pair.
-  Time to run = 5.99 sec
+  Time to run = 6.63 sec
 
 . 
 . return list
 
 scalars:
-                r(t99) =  5.987
+                r(t99) =  6.629
                r(nt99) =  1
          r(scores_max) =  7129.234684192759
          r(scores_min) =  1007.069252697875
@@ -3612,5 +3681,5 @@ matrices:
       name:  dtalink_example
        log:  C:\Users\kkranker\Documents\Stata\Ado\personal\d\dtalink_example.log
   log type:  text
- closed on:  30 Jul 2018, 22:26:14
+ closed on:  27 Aug 2018, 20:41:01
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------
