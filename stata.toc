@@ -1,0 +1,6 @@
+v 3
+d Stata package by Keith Kranker
+
+d Packages in this repository are listed below:
+
+p dtalink Stata module to implement probabilistic record linkage
