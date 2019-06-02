@@ -9,6 +9,8 @@ d See dtalink.sthlp for documentation and examples.
 d
 d Package by Keith Kranker, Mathematica Policy Research
 d
+* Package moved to Git/Github on 2019-06-01
+*
 f dtalink.ado
 f dtalink.sthlp
 f dtalink_example.do
