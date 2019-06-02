@@ -5,19 +5,18 @@ cls
 set linesize 160
 cap nois log using "dtalink_example.log", replace name(dtalink_example)
 
-*! $Id: dtalink_example.do,v 8287baa7ffdd 2018/07/20 04:39:39 kkranker $
+*! $Id: dtalink_example.do,v a7f00d9abef8 2018/07/31 04:28:39 kkranker $
 *! Probabilistic record linkage routine - examples
 *!
 *! This progam shows how the dtalink command might be used.
 *!
 *! By Keith Kranker
-*! $Date: 2018/07/20 04:39:39 $
+*! $Date: 2018/07/31 04:28:39 $
 *
 * Copyright (C) Mathematica Policy Research, Inc. This code cannot be copied, distributed or used without the express written permission of Mathematica Policy Research, Inc.
 
 pwd
 which dtalink
-which timer99
 set processors `c(processors_max)'
 
 
@@ -158,9 +157,11 @@ drop if file==0
 drop file
 gen subsetfile = floor(_n/5)
 sort subsetfile, stable
-parallel setclusters 2
-parallel, by(subsetfile) processors(2): dtalink last 3 -3 yankee 1 -1 using "`file2'", cutoff(3)
-tab  _score, plot
+cap nois {
+  parallel setclusters 2
+  parallel, by(subsetfile) processors(2): dtalink last 3 -3 yankee 1 -1 using "`file2'", cutoff(3)
+  tab  _score, plot
+}
 
 
 *********************************************
@@ -256,6 +257,25 @@ dtalink `newwgts', source(fileid) cutoff(6) bestmatch
 sort _matchID trueID
 list _matchflag _matchID trueID, sepby(_matchID)
 by  _matchID (trueID): assert trueID[_n]==trueID[_N] if _matchflag
+
+
+***************************************
+* Short program for 1-line timers
+***************************************
+
+program define timer99
+  _on_colon_parse `0'
+  timer clear 99
+  timer on 99
+  `s(after)'
+  timer off 99
+  qui timer list 99
+  di as txt "  Time to run = " _c
+  if r(t99) < 90           di as res =round(r(t99)      ,.01) " sec"
+  else if r(t99)/60 < 400  di as res =round(r(t99)/60   ,.01) " min"
+  else                     di as res =round(r(t99)/60/60,.01) " hr"
+  timer clear 99
+end
 
 
 ***************************************
@@ -373,10 +393,12 @@ timer99: dtalink `v1_k', cutoff(5) block(f) wide describe
 
 // when you only have one block, the parallel prefix might speed things up:
 restore, preserve
-parallel setclusters 2
-timer99: ///
-parallel, by(f) processors(2):  dtalink `v1_k', cutoff(5) wide
-tab  _score, plot
+cap nois {
+  parallel setclusters 2
+  timer99: ///
+  parallel, by(f) processors(2):  dtalink `v1_k', cutoff(5) wide
+  tab  _score, plot
+}
 
 // EM example
 restore, preserve

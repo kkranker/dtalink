@@ -1,9 +1,10 @@
 {smcl}
-{* $Id: dtalink.sthlp,v 8287baa7ffdd 2018/07/20 04:39:39 kkranker $}{...}
+{* $Id: dtalink.sthlp,v a7f00d9abef8 2018/07/31 04:28:39 kkranker $}{...}
 {* Copyright (C) Mathematica Policy Research, Inc. This code cannot be copied, distributed or used without the express written permission of Mathematica Policy Research, Inc.}{...}
 {vieweralsosee "" "--"}{...}
-{vieweralsosee "[D] append" "help append"}{...}
-{vieweralsosee "[D] using" "help using"}{...}
+{vieweralsosee "append" "help append"}{...}
+{vieweralsosee "reshape" "help reshape"}{...}
+{vieweralsosee "using" "help using"}{...}
 {viewerjumpto "Syntax" "dtalink##syntax"}{...}
 {viewerjumpto "Description" "dtalink##description"}{...}
 {viewerjumpto "Options" "dtalink##options"}{...}
@@ -53,7 +54,7 @@ If a caliper is not specified, exact matching is used.{p_end}
 {synopt:{opt alls:cores}}keeps all scores for a pair, not just the maximum.{p_end}
 {synoptline}
 {syntab:Options to format output file}
-{synopt:{opt wi:de}}outputs a crosswalk file in a "wide" format (rather than "long"){p_end}
+{synopt:{opt wi:de}}outputs a crosswalk file in a "wide" {help dtalink##formatting:format} (rather than "long"){p_end}
 {synopt:{opt nome:rge}}prevents the crosswalk file (in "long" format) from being merged back onto original data{p_end}
 {synopt:{opt miss:ing}}treats missing strings ("") as their own group in both non-numeric match variables and blocking variables {p_end}
 {synopt:{opt fill:unmatched}}fills the _matchID variable with a unique identifier for unmatched observations; the default is _matchID = . for unmatched observations{p_end}
@@ -83,8 +84,7 @@ If a caliper is not specified, exact matching is used.{p_end}
 {marker description}{...}
 {title:Description}
 
-{pstd}
-Stata users often need to link records from two or more data files or find duplicates within data files.
+{pstd}Stata users often need to link records from two or more data files or find duplicates within data files.
 Probabilistic linking methods are often used when the file(s) do not have reliable or unique identifiers,
 causing deterministic linking methods (such as Stata's {help merge}, {help joinby}, or {help duplicates} commands) to fail.
 For example, one might need to link files that only include
@@ -93,8 +93,7 @@ Probabilistic linking methods score each potential pair of records using the mat
 (Newcombe et al. 1959; Fellegi and Sunter 1969).
 Pairs with higher overall scores indicate a better match than pairs with lower scores.{p_end}
 
-{pstd}
-{cmd:dtalink} implements probabilistic linking methods (a.k.a. probabilistic matching) for two cases:{p_end}
+{pstd}{cmd:dtalink} implements probabilistic linking methods (a.k.a. probabilistic matching) for two cases:{p_end}
 {phang2}(1) linking records in two data files{p_end}
 {phang2}(2) deduplicating records in one data file{p_end}
 
@@ -272,7 +271,37 @@ That is, there are multiple rows per unit to be matched.){p_end}
              {bind: +------------------+  +-------------------+ }{p_end}
 
 
+{marker formatting}{...}
 {dlgtab:Output file formatting}
+
+{pstd}Matched pairs can be returned in a crosswalk using a {result:wide} format
+or a {result:long} format (see {help reshape}).
+In either format, a pair is defined by two cases (that is, two {result:_id}s),
+a score ({result:_score}), and a unique identification number ({result:_matchID}).
+In the {result:long} format, an additional variable ({result:_source}) is necessary to identify
+the source file when linking two data files. (See below for an example.){p_end}
+
+{p 16 16 2 0}{bind:          {result:Wide} format                       {result:Long} format          }{break}
+             {bind:+----------------------------+  +------------------------------+}{break}
+             {bind:|  _id0 _id1 _score _matchID |  | _matchID _source  _id _score |}{break}
+             {bind:+----------------------------+  +------------------------------+}{break}
+             {bind:|     1   10     15        1 |  |        1      0     1     15 |}{break}
+             {bind:|     2   12     13        2 |  |        1      1    10     15 |}{break}
+             {bind:|     1   11      9        3 |  +------------------------------+}{break}
+             {bind:|     3   13      8        4 |  |        2      0     2     13 |}{break}
+             {bind:+----------------------------+  |        2      1    12     13 |}{break}
+             {bind:                                +------------------------------+}{break}
+             {bind:                                |        3      0     1      9 |}{break}
+             {bind:                                |        3      1    11      9 |}{break}
+             {bind:                                +------------------------------+}{break}
+             {bind:                                |        4      0     3      8 |}{break}
+             {bind:                                |        4      1    13      8 |}{break}
+             {bind:                                +------------------------------+}{p_end}
+
+{pstd}By default, (1) results are returned in a {result:long} format,
+                  (2) the results are merged with the original data file, and
+                  (3) unmatched cases are included in the crosswalk (with {result:_score} and {result:_matchID} set to missing).
+The following options can be used to modify these defaults:{p_end}
 
 {phang}{opt wide} prevents the crosswalk file from being reshaped from "wide" into "long" format (and turns on {cmd:nomerge}).{p_end}
 
@@ -313,7 +342,8 @@ Easy data cleaning steps can greatly improve results, such as:{p_end}
 {phang2}- Splitting {help datetime:dates} and addresses into subcomponents{p_end}
 {phang2}- Standardizing abbreviations and other values ({search reclink2, all:reclink2} includes helpful commands){p_end}
 {phang2}- {help regexr():Removing} or standardize punctuation{p_end}
-{phang2}- Useing phonetic algorithms to code names (such as {help soundex()} or {search nysiis, all:nysiis}){p_end}
+{phang2}- Using phonetic algorithms to code names (such as {help soundex()}, {search nysiis, all:nysiis}, or
+{browse "https://github.com/wbuchanan/StataStringUtilities":StataStringUtilities}){p_end}
 
 {phang}(2) Weights should reflect the probability a variable matches for true versus false matches (Fellegi and Sunter 1969).
 Weights should be higher for linking variables with more specificity (like Social Security number or telephone number) and
@@ -383,9 +413,9 @@ could be used to match on a name and the name's phonetic code:{p_end}
 {phang3}{input: . dtalink name 7 0 name_nysiis 3 -2 }{p_end}
 
 {pmore}This code would award a net weight of {p_end}
-{phang3}{bind:+10} if records have the same name (+7) and therefore have the same NYIIS code too (+3),{p_end}
-{phang3}{bind: +3} if records have the same NYIIS code (+3) but don't have the exact same name (0), and {p_end}
-{phang3}{bind: -2} if records don't have the same NYIIS code (-2) and therefore don't have the same name either (0).{p_end}
+{phang3}{bind:+10} if records have the same name (+7) and therefore have the same NYSIIS code too (+3),{p_end}
+{phang3}{bind: +3} if records have the same NYSIIS code (+3) but don't have the exact same name (0), and {p_end}
+{phang3}{bind: -2} if records don't have the same NYSIIS code (-2) and therefore don't have the same name either (0).{p_end}
 
 {pmore}This concept has wide-ranging applications. For example, a user could break up an address into its
 subcomponents (house number, street name, city, state, zip code) and award a "bonus" score for a complete match,
@@ -424,7 +454,7 @@ For example, the following code will give a score of +10/-7 for matches/nonmatch
 {pstd}By Keith Kranker{break}
 Mathematica Policy Research{p_end}
 
-{pstd}This help file last updated $Date: 2018/07/20 04:39:39 ${p_end}
+{pstd}This help file last updated $Date: 2018/07/31 04:28:39 ${p_end}
 
 {pstd}I thank Liz Potamites for testing early versions of the program and providing helpful feedback.{p_end}
 
@@ -440,17 +470,16 @@ Mathematica Policy Research{p_end}
 {marker results}{...}
 {title:Stored results}
 
-{pstd}
-{cmd:dtalink} creates the following variables and stores the following in {cmd:r()}:
+{pstd}{cmd:dtalink} creates the following variables and stores the following in {cmd:r()}:
 
 {synoptset 20 tabbed}{...}
 {p2col 5 20 24 2: Variables}{p_end}
 {synopt:{cmd:_score}    }     probabilistic matching score{p_end}
 {synopt:{cmd:_matchID } }     identification number assigned to a matched set (that is, linked records){p_end}
 {synopt:{cmd:_source }  }     the source file (data linking only){p_end}
-{synopt:{cmd:_id0 }     }     record identification number in file 0 (data linking only; wide format only){p_end}
-{synopt:{cmd:_id1 }     }     record identification number in file 1 (data linking only; wide format only){p_end}
-{synopt:{cmd:_id }      }     record identification number (tall format only){p_end}
+{synopt:{cmd:_id0 }     }     record identification number in file 0 (data linking only; {help dtalink##formatting:wide format} only){p_end}
+{synopt:{cmd:_id1 }     }     record identification number in file 1 (data linking only; {help dtalink##formatting:wide format} only){p_end}
+{synopt:{cmd:_id }      }     record identification number ({help dtalink##formatting:long format} only){p_end}
 {synopt:{cmd:_matchflag}}     match indicator (0/1){p_end}
 
 {synoptset 20 tabbed}{...}
