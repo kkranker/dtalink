@@ -1,5 +1,5 @@
 v 3
-d dtalink: Stata module to implement probabilistic record linkage
+d dtalink: Stata package to implement probabilistic record linkage
 d
 d dtalink implements probabilistic record linkage (a.k.a. probabilistic matching) in Stata for two cases:
 d - deduplicating records in one data file
@@ -9,6 +9,8 @@ d See dtalink.sthlp for documentation and examples.
 d
 d Package by Keith Kranker, Mathematica Policy Research
 d
+* Package moved to Git/Github on 2019-06-01
+*
 f dtalink.ado
 f dtalink.sthlp
 f dtalink_example.do
