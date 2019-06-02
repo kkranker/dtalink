@@ -1280,7 +1280,7 @@ real colvector dtalink::dts_score(real matrix dst_0, real scalar i,
   real colvector scores
   dst_match = (abs(dst_0[i,.] :- dst_1[|blockrange_j|]):<=dst_radii)
   if (dst_miss) {
-    dst_ijnonmiss = ((dst_0[i,.]:<.) :& (dst_0[|blockrange_j|]:<.))
+    dst_ijnonmiss = ((dst_0[i,.]:<.) :& (dst_1[|blockrange_j|]:<.))
     scores = (dst_match:*dst_ijnonmiss) * dst_poswgt + (!dst_match:*dst_ijnonmiss) * dst_negwgt
   }
   else {
