@@ -28,7 +28,7 @@ Keith Kranker, 2018. "DTALINK: Stata module to implement probabilistic record li
 
 Stata users often need to link records from two or more data files or find duplicates within data files.
 Probabilistic linking methods are often used when the file(s) do not have reliable or unique identifiers,
-causing deterministic linking methods (such as Stata's merge, joinby}, or duplicates} commands) to fail.
+causing deterministic linking methods (such as Stata's `merge`, `joinby`, or `duplicates` commands) to fail.
 For example, one might need to link files that only include
 inconsistently spelled names, dates of birth with typos or missing data, and addresses that change over time.
 Probabilistic linking methods score each potential pair of records using the matching variables and weights
@@ -62,8 +62,3 @@ making it practical to implement the methods with large, administrative data fil
 Flexible scoring and many-to-many matching techniques are also options.
 
 The Stata help file (dtalink.sthlp) provides additional documentation and examples.
-
-
-# Wish list/potential extentions
-
-- [ ] String edit distances (https://ideas.repec.org/c/boc/bocode/s457547.html)
