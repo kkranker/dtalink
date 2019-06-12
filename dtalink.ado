@@ -1,4 +1,4 @@
-*! $Id: dtalink.ado,v 4b6216cc2d41 2019/02/13 16:40:49 kkranker $
+*! dtalink.ado
 *! Probabilistic record linkage or deduplication
 *
 *  dtalink implements probabilistic record linkage (a.k.a. probabilistic matching) for two cases:
@@ -13,7 +13,6 @@
 *  datasets. The computationally-heavy parts of the program are implemented in Mata subroutines.
 *
 *! By Keith Kranker
-*! $Date: 2019/02/13 16:40:49 $
 *
 * dtalink.sthlp includes a full description of the command, the command's sytnax, and description of each outcome.
 *

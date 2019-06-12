@@ -7,13 +7,13 @@ dtalink implements probabilistic record linkage (a.k.a. probabilistic matching) 
 
 # Installation
 
-To install from Github, type this from your Stata command line:
+To install from Github, type this into your Stata command line:
 
 ```stata
-. net from https://raw.githubusercontent.com/kkranker/stata-dtalink/master/
+. net from https://raw.githubusercontent.com/kkranker/dtalink/master/
 ```
 
-To install from Github, type this from your Stata command line:
+To install from SSC, click on the links after typing this into your Stata command line:
 
 ```stata
 . net describe dtalink
@@ -21,7 +21,13 @@ To install from Github, type this from your Stata command line:
 
 # Suggested Citation
 
-Keith Kranker, 2018. "DTALINK: Stata module to implement probabilistic record linkage," Statistical Software Components S458504, Boston College Department of Economics, revised 16 Feb 2019.  Available at https://ideas.repec.org/c/boc/bocode/s458504.html.
+* Keith Kranker. "DTALINK: Stata module to implement probabilistic record linkage," Statistical Software Components S458504, Boston College Department of Economics, 2018.  Available at https://ideas.repec.org/c/boc/bocode/s458504.html.
+
+or
+
+* Kranker, Keith. DTALINK: Faster Probabilistic Record Linking and Deduplication Methods in Stata for Large Data Files.” Presented at the 2018 Stata Conference, Columbus, OH, July 20, 2018.
+
+Source code is available at https://github.com/kkranker/dtalink
 
 
 # Description

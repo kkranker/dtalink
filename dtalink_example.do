@@ -5,13 +5,12 @@ cls
 set linesize 160
 cap nois log using "dtalink_example.log", replace name(dtalink_example)
 
-*! $Id: dtalink_example.do,v 4b6216cc2d41 2019/02/13 16:40:49 kkranker $
+*! dtalink_example.do
 *! Probabilistic record linkage routine - examples
 *!
 *! This progam shows how the dtalink command might be used.
 *!
 *! By Keith Kranker
-*! $Date: 2019/02/13 16:40:49 $
 *
 * Copyright (C) Mathematica Policy Research, Inc. This code cannot be copied, distributed or used without the express written permission of Mathematica Policy Research, Inc.
 

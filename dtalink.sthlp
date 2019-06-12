@@ -449,9 +449,14 @@ For example, the following code will give a score of +10/-7 for matches/nonmatch
 {pstd}By Keith Kranker{break}
 Mathematica Policy Research{p_end}
 
-{pstd}This help file last updated $Date: 2019/02/13 03:41:09 ${p_end}
+{pstd}Suggested citation{p_end}
+{phang2}- Keith Kranker. "DTALINK: Stata module to implement probabilistic record linkage," Statistical Software Components S458504, Boston College Department of Economics, 2018.  Available at https://ideas.repec.org/c/boc/bocode/s458504.html.
+{break}or{p_end}
+{phang2}- Kranker, Keith. DTALINK: Faster Probabilistic Record Linking and Deduplication Methods in Stata for Large Data Files.” Presented at the 2018 Stata Conference, Columbus, OH, July 20, 2018.{p_end}
 
 {pstd}I thank Liz Potamites for testing early versions of the program and providing helpful feedback.{p_end}
+
+{pstd}Source code is available at {browse "https://github.com/kkranker/dtalink"}{p_end}
 
 
 {marker examples}{...}
