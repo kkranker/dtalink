@@ -456,7 +456,8 @@ Mathematica Policy Research{p_end}
 
 {pstd}I thank Liz Potamites for testing early versions of the program and providing helpful feedback.{p_end}
 
-{pstd}Source code is available at {browse "https://github.com/kkranker/dtalink"}{p_end}
+{pstd}Source code is available at {browse "https://github.com/kkranker/dtalink"}.
+Please report issues at  {browse "https://github.com/kkranker/dtalink/issues"}.{p_end}
 
 
 {marker examples}{...}

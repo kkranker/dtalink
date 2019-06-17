@@ -27,7 +27,8 @@ or
 
 * Kranker, Keith. DTALINK: Faster Probabilistic Record Linking and Deduplication Methods in Stata for Large Data Files.” Presented at the 2018 Stata Conference, Columbus, OH, July 20, 2018.
 
-Source code is available at https://github.com/kkranker/dtalink
+Source code is available at https://github.com/kkranker/dtalink.
+Please report issues at https://github.com/kkranker/dtalink/issues.
 
 
 # Description
