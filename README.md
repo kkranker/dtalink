@@ -4,6 +4,7 @@ dtalink implements probabilistic record linkage (a.k.a. probabilistic matching) 
 - deduplicating records in one data file
 - linking records in two data files
 
+[The presentation slides in this repository](https://github.com/kkranker/dtalink/raw/master/dtalink_slides.pdf) provide an introduction to the methods and an overview of the package.
 
 # Installation
 
