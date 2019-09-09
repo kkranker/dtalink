@@ -1385,23 +1385,21 @@ void dtalink::bestmatch()
 
   // this is a vector of dummies: 1 ---> keep row, 0 --> drop row
   // first row is okay because of sort and we know there are >1 rows in pairs
-  keepflag = J(pairsnum,1,.)
+  keepflag = J(pairsnum,1,1)
   keepflag[1] = 1
+  j = 0
 
   // loop through rows in pairs, updating _dropflag variable file as we go
   for (i=2; i<=pairsnum; i++) {
+    j++
 
     // if lID has been matched before or rID has been matched before, ignore the match
     // (since the rID has been matched to a different (better) lID or lID has been matched to a different (better) rID.)
-    j = i-1
     if ( any( ((pairs[|1,1\j,1|]:==pairs[i,1]) :| (pairs[|1,2\j,2|]:==pairs[i,2])) :& (keepflag[|1 \ j|])) ) {
       keepflag[i] = 0
     }
 
-    // Otherwise, neither ID has been matched before, so keep the match
-    else {
-      keepflag[i] = 1
-    }
+    // Otherwise, neither ID has been matched before, so keep the match (leave keepflag = 1)
 
   } // end of loop over rows
 
@@ -1452,24 +1450,22 @@ void dtalink2::bestmatch(| real scalar srcbestmatch)
 
     // this is a vector of dummies: 1 ---> keep row, 0 --> drop row
     // first row is okay because of sort and we know there are >1 rows in pairs
-    keepflag = J(pairsnum,1,.)
+    keepflag = J(pairsnum,1,1)
     keepflag[1] = 1
 
     // loop through rows in pairs, updating _dropflag variable file as we go
     real scalar i,j
+    j = 0
     for (i=2; i<=pairsnum; i++) {
 
       // if lID has been matched before or rID has been matched before, ignore the match
       // (since the rID has been matched to a different (better) lID or lID has been matched to a different (better) rID.)
-      j = i-1
+      j++
       if ( any( ((pairs[|1,1\j,1|]:==pairs[i,1]) :| (pairs[|1,2\j,2|]:==pairs[i,2])) :& (keepflag[|1 \ j|])) ) {
         keepflag[i] = 0
       }
 
-      // Otherwise, neither ID has been matched before, so keep the match
-      else {
-        keepflag[i] = 1
-      }
+      // Otherwise, neither ID has been matched before, so keep the match (leave keepflag = 1)
 
     } // end of loop over rows
   }
