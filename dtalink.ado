@@ -41,6 +41,7 @@ program define dtalink, rclass
     CALcweights             /// calculate weights
     BESTmatch               /// drop 2nd-best matches.  See notes below.
     SRCBESTmatch(integer -1) /// drop 2nd-best matches for source=0 observations or source=1 observations (but not both). See notes below.
+    TIEs                    /// keeps ties when bestmatch and scrbestmatc() are otherwise dropping 2nd-best matches
     COMBINEsets             /// creates extra large groups that may contain more than one id(). See notes below.
     ALLScores               /// keeps all scores for a pair, not just the maximum score (By default, the program only keeps the max score for a matched pair.  This option keeps all scores for a pair. (This only has an effect on the results if id() is not unique.) (implies nomerge)
                             ///
@@ -271,11 +272,21 @@ program define dtalink, rclass
   }
 
   // check for invalid options or combinations of options
-  if (1<(("`combinesets'"=="combinesets") + ("`bestmatch'"=="bestmatch") + inlist(`srcbestmatch',0,1) + ("`allscores'"=="allscores"))) {
+  if ("`ties'"=="ties") {
+    if (1 != ("`bestmatch'"=="bestmatch") + inlist(`srcbestmatch',0,1)) {
+      di as error "With the `ties' option, you are required to select one of the following options: bestmatch, srcbestmatch()."
+      error 184
+    }
+    else if ("`allscores'"=="allscores") {
+      di as error "With the `ties' option, allscores is not allowed."
+      error 184
+    }
+  }
+  else if (1<(("`combinesets'"=="combinesets") + ("`bestmatch'"=="bestmatch") + inlist(`srcbestmatch',0,1) + ("`allscores'"=="allscores"))) {
     di as error "Only one of the following options is allowed at a time: combinesets, bestmatch, srcbestmatch(), and allscores."
     error 184
   }
-  else return local options = trim(`"`combinesets' `bestmatch' `=cond(inlist(`srcbestmatch',0,1),"srcbestmatch(`srcbestmatch')","")' `allscores'"')
+  else return local options = trim(`"`combinesets' `bestmatch' `ties' `=cond(inlist(`srcbestmatch',0,1),"srcbestmatch(`srcbestmatch')","")' `allscores'"')
   if !inlist(`srcbestmatch',-1) {
     if !inlist(`srcbestmatch',0,1) {
       di as error "srcbestmatch() option must be 0 or 1"
@@ -467,20 +478,27 @@ program define dtalink, rclass
 
   // The bestmatch option deals with case where an `id' is assigned to multiple _matchIDs.
   // After running this subroutine, each `id' will be assigned to exactly one _matchID.
-  if ("`bestmatch'"=="bestmatch") {
+  if ("`bestmatch'"=="bestmatch" & "`ties'"=="ties") {
+    mata: `D'.dropinferior()
+  }
+  else if ("`bestmatch'"=="bestmatch" & "`ties'"=="") {
     mata: `D'.bestmatch()
   }
 
   // The srcbestmatch() option deals with case where an `id' in one file (0 or 1) is assigned to multiple _matchIDs.
   // For each `id' in file=`srcbestmatch', we keep each _matchIDs with the highest score.
-  else if inlist(`srcbestmatch',0,1) {
+  else if inlist(`srcbestmatch',0,1)  & "`ties'"=="ties" {
+    local adj_srcbestmatch = cond("`sourcevar'"!="",1-`srcbestmatch',`srcbestmatch') // we might have switched left/right above
+    mata: `D'.dropinferior(`adj_srcbestmatch')
+  }
+  else if inlist(`srcbestmatch',0,1)  & "`ties'"=="" {
     local adj_srcbestmatch = cond("`sourcevar'"!="",1-`srcbestmatch',`srcbestmatch') // we might have switched left/right above
     mata: `D'.bestmatch(`adj_srcbestmatch')
   }
 
   // combinesets is a subroutine to deal with case where an ID is assigned to multiple _matchIDs.
   // After running this subroutine, _matchID be updated to include all IDs that were ever matched together
-  else if ("`combinesets'"=="combinesets") {
+  if ("`combinesets'"=="combinesets") {
     mata: `D'.combinesets()
   }
 
@@ -677,6 +695,7 @@ class dtalink
     void           dedup()
     void           assign()
     void           bestmatch()
+    void           dropinferior()
     void           combinesets()
     real matrix    tall()
   protected:
@@ -709,6 +728,7 @@ class dtalink2 extends dtalink
   public:
     void           load()
     void           bestmatch()
+    void           dropinferior()
     void           combinesets()
 
   protected:
@@ -1368,10 +1388,10 @@ void dtalink::assign()
 }
 
 // bestmatch() deals with case where an `id' is assigned to multiple _matchIDs.
-//   bestmatch() (without arguments) impliments the `bestmatch' option in the adofile
+//   bestmatch() impliments the `bestmatch' option in the adofile
 //     We keep each _matchIDs with the highest score, as long as the two IDs are not assigned to a "better" match.
 //     Ties are broken in descending order by _score, then assending order by _id_0 and _id_1.
-//  The dtalink version does not allow arguments, since the `srcbestmatch' option is not applicable
+//  The dtalink (1-file) version does not allow arguments, since the `srcbestmatch' option is not applicable
 void dtalink::bestmatch()
 {
   //DEBUG// if (debug) "+++ beginning of dtalink::bestmatch()"
@@ -1420,7 +1440,7 @@ void dtalink::bestmatch()
   //DEBUG// }
 } // end of dtalink::bestmatch()
 
-// In addition to the dtalink version, the dtalink2 version impliments the srcbestmatch() option for the .ado file.
+// Without arguments, this function acts the same as the dtalink (1-file) version, with modifications for the 2nd file.
 //  The arguments deal with the case where an `id' in one file (0 or 1) is assigned to multiple _matchIDs.
 //    After running this subroutine, each `id' in file=`srcbestmatch' will be assigned to exactly zero or one _matchID.
 //    Each `id' in file=(1-`srcbestmatch') may be assigned to 2 or more _matchIDs
@@ -1502,6 +1522,165 @@ void dtalink2::bestmatch(| real scalar srcbestmatch)
   //DEBUG//   "+++ end of dtalink2::bestmatch()"
   //DEBUG// }
 } // end of dtalink2::bestmatch()
+
+// dropinferior() deals with case where an `id' is assigned to multiple _matchIDs.
+// it is similar to  bestmatch() except in how it handles ties
+//   bestmatch() impliments the `bestmatch' option in the adofile
+//     We keep each _matchIDs with the highest score, as long as the two IDs are not assigned to a "better" match.
+//     Ties are kept.  An `id' could assigned to multiple _matchIDs, so long as all those _matchIDs have the same score.
+//  The dtalink (1-file) version does not allow arguments, since the `srcbestmatch' option is not applicable
+//  Consider running combinesets() after this function.
+void dtalink::dropinferior()
+{
+  //DEBUG// if (debug) "+++ beginning of dtalink::dropinferior()"
+
+  if (pairsnum<=1) return
+  if (cols(pairs)<4) _error("match IDs have not been assigned; call dtalink::assign()")
+  real colvector keepflag; real scalar i,j
+
+  "Keeping best match for each " + id_var + " (keeping ties)"
+  (void) _sort(pairs, (-3,1,2,4))    // <-- key difference between dtalink::dropinferior() and dtalink2::dropinferior()
+
+  // this is a vector of dummies: 1 ---> keep row, 0 --> drop row
+  // first row is okay because of sort and we know there are >1 rows in pairs
+  keepflag = J(pairsnum,1,.)
+  keepflag[1] = 1
+  j = 0
+
+  // loop through rows in pairs, updating _dropflag variable file as we go
+  for (i=2; i<=pairsnum; i++) {
+    j++
+
+    // if lID has been matched before or rID has been matched before, ignore the match
+    // (since the rID has been matched to a different (better) lID or lID has been matched to a different (better) rID.)
+    if (any(((pairs[|1,1\j,1|] :== pairs[i,1]) :| (pairs[|1,2\j,2|] :== pairs[i,2])) :& (keepflag[|1 \ j|]) :& (pairs[|1,3\j,3|]:>pairs[i,3]))) {
+      keepflag[i] = 0
+    }
+
+    // Otherwise, neither ID has been matched before, so keep the match (leave keepflag = 1)
+
+  } // end of loop over rows
+
+  // subset the data
+  "(" + strofreal(sum(!keepflag)) + " pairs deleted.)"
+  pairs = select(pairs,keepflag)
+  pairsnum = pairmatnum = rows(pairs)
+
+  // now sort ascending by score
+  (void) _sort(pairs, (4,1,2,3))
+
+  //DEBUG// if (debug) {
+  //DEBUG//   "pairs  is " + strofreal(rows(pairs)) + " by " + strofreal(cols(pairs))
+  //DEBUG//   "pairsnum="; pairsnum
+  //DEBUG//   "pairmatnum="; pairmatnum
+  //DEBUG//   "first 40 rows of pairs:"; if (pairmatnum) pairs[|1,1\min((40,rows(pairs))),.|];
+  //DEBUG//   "+++ end of dtalink::dropinferior()"
+  //DEBUG// }
+
+} // end of dtalink::dropinferior()
+
+// It is similar to  bestmatch() except in how it handels ties.
+// Without arguments, this function acts the same as the dtalink (1-file) version, with modifications for the 2nd file.
+//  The arguments deal with the case where an `id' in one file (0 or 1) is assigned to multiple _matchIDs.
+//    After running this subroutine, each `id' in file=`srcbestmatch' will be assigned to exactly zero or one _matchID.
+//    Each `id' in file=(1-`srcbestmatch') may be assigned to 2 or more _matchIDs
+//    For each `id' in file=`srcbestmatch', we keep each _matchIDs with the highest score.
+//  Ties are kept.  An `id' could assigned to multiple _matchIDs, so long as all those _matchIDs have the same score.
+//  Consider running combinesets() after this function.
+void dtalink2::dropinferior(| real scalar srcbestmatch)
+{
+  //DEBUG// if (debug) {
+  //DEBUG//   "+++ beginning of dtalink2::dropinferior()"
+  //DEBUG//   "args()"
+  //DEBUG//    args();
+  //DEBUG//   if (args()) {
+  //DEBUG//     "srcbestmatch"
+  //DEBUG//      srcbestmatch
+  //DEBUG//   }
+  //DEBUG// }
+
+  if (pairsnum<=1) return
+  if (cols(pairs)<4) _error("match IDs have not been assigned; call dtalink::assign()")
+
+  // this is a vector of dummies: 1 ---> keep row, 0 --> drop row
+  // first row is okay because of sort and we know there are >1 rows in pairs
+  real colvector keepflag; real scalar i,j
+  keepflag = J(pairsnum,1,1)
+  keepflag[1] = 1
+  j = 0
+
+  // dropinferior appraoch -- assign each ID to exactly one _matchID
+  if (args()==0) {
+
+    "Keeping best match for each " + id_var + " (keeping ties)"
+    (void) _sort(pairs, (-3,2,1,4))    // <-- key difference between dtalink::dropinferior() and dtalink2::dropinferior()
+
+    // loop through rows in pairs, updating _dropflag variable file as we go
+    for (i=2; i<=pairsnum; i++) {
+
+      // if lID has been matched before or rID has been matched before, ignore the match -- unless the score is a tie
+      // (since the rID has been matched to a different (better) lID or lID has been matched to a different (better) rID.)
+      // Otherwise, neither ID has been matched before, so keep the match  (leave keepflag = 1)
+      j++
+      if (any(((pairs[|1,1\j,1|] :== pairs[i,1]) :| (pairs[|1,2\j,2|] :== pairs[i,2])) :& (keepflag[|1 \ j|]) :& (pairs[|1,3\j,3|] :> pairs[i,3])))  {
+        keepflag[i] = 0
+      }
+
+    } // end of loop over rows
+  }
+
+  else if (srcbestmatch==0) {
+    "Keeping best match for each _id in file 0 (keeping ties)"
+    (void) _sort(pairs, (1,-3,2,4))
+
+    keepflag = (1 \ (pairs[|2,1\pairsnum,1|] :!= pairs[|1,1\(pairsnum-1),1|]))     // equivalent by _id_0: keep if _n==1   (always keep first row)
+
+    // loop through rows in pairs, updating _dropflag variable file as we go
+    for (i=2; i<=pairsnum; i++) {
+      j++
+
+      // if lID has been matched before or rID has been matched before, ignore the match -- unless the score is a tie
+      // (since the rID has been matched to a different (better) lID or lID has been matched to a different (better) rID.)
+      // Otherwise, neither ID has been matched before, so keep the match  (leave keepflag = 1)
+      if (any((pairs[|1,1\j,1|] :== pairs[i,1]) :& (keepflag[|1 \ j|]) :& (pairs[|1,3\j,3|] :> pairs[i,3]))) {
+        keepflag[i] = 0
+      }
+    }
+  }
+
+  else if (srcbestmatch==1) {
+    // same as before, but use IDs column 2 instead of column 1
+    "Keeping best match for each _id in file 1  (keeping ties)"
+    (void) _sort(pairs, (2,-3,1,4))
+    for (i=2; i<=pairsnum; i++) {
+      j++
+      if (any((pairs[|1,2\j,2|] :== pairs[i,2]) :& (keepflag[|1 \ j|]) :& (pairs[|1,3\j,3|] :> pairs[i,3]))) {
+        keepflag[i] = 0
+      }
+    }
+  }
+
+  else _error("Argument must be 0 or 1")
+
+  // subset the data
+  "(" + strofreal(sum(!keepflag)) + " rows deleted.)"
+  pairs = select(pairs,keepflag)
+  pairsnum = pairmatnum = rows(pairs)
+
+  // now sort descending by score
+  (void) _sort(pairs, (-4,1,2,3))
+
+  //DEBUG// if (debug) {
+  //DEBUG//   "keepflag       is " + strofreal(rows(keepflag)) + " by " + strofreal(cols(keepflag))
+  //DEBUG//   "sum(keepflag)  is " + strofreal(rows(keepflag)) + " by " + strofreal(cols(keepflag))
+  //DEBUG//   "pairs          is " + strofreal(rows(pairs))    + " by " + strofreal(cols(pairs))
+  //DEBUG//   "pairsnum="; pairsnum
+  //DEBUG//   "pairmatnum="; pairmatnum
+  //DEBUG//   "first 40 rows of pairs:"; if (pairmatnum) pairs[|1,1\min((40,rows(pairs))),.|];
+  //DEBUG//   "+++ end of dtalink2::dropinferior()"
+  //DEBUG// }
+
+} // end of dtalink2::dropinferior()
 
 // dtalink_combinesets() is the mata routine for the subcommand dtalink_combinesets
 // After running this subroutine, _matchID be updated so that each _ID includes all IDs that were ever matched together
