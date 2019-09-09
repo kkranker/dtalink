@@ -1,30 +1,28 @@
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------
       name:  dtalink_example
-       log:  C:\Users\kkranker\Documents\Stata\Ado\personal\d\dtalink_example.log
+       log:  C:\Users\kkranker\Documents\Stata\dtalink\code-dtalink\dtalink_example.log
   log type:  text
- opened on:  13 Feb 2019, 09:41:19
+ opened on:   9 Sep 2019, 16:45:51
 
 . 
-. *! $Id: dtalink_example.do,v 4b6216cc2d41 2019/02/13 16:40:49 kkranker $
+. *! dtalink_example.do
 . *! Probabilistic record linkage routine - examples
 . *!
 . *! This progam shows how the dtalink command might be used.
 . *!
 . *! By Keith Kranker
-. *! $Date: 2019/02/13 16:40:49 $
 . *
 . * Copyright (C) Mathematica Policy Research, Inc. This code cannot be copied, distributed or used without the express written permission of Mathematica Policy
 >  Research, Inc.
 . 
 . pwd
-C:\Users\kkranker\Documents\Stata\Ado\personal\d
+C:\Users\kkranker\Documents\Stata\dtalink\code-dtalink
 
 . which dtalink
 .\dtalink.ado
-*! $Id: dtalink.ado,v 4b6216cc2d41 2019/02/13 16:40:49 kkranker $
+*! dtalink.ado
 *! Probabilistic record linkage or deduplication
 *! By Keith Kranker
-*! $Date: 2019/02/13 16:40:49 $
 *! Mata Source Code
 *! Defines classes which are called by dtalink.ado
 *! dtalink is the parent class and includes shared functions
@@ -628,6 +626,128 @@ The current configuration of the data is: one row per record.
  25. |        7   11    14.00    Matched    William      Ted         Cox        0 |
      +----------------------------------------------------------------------------+
 
+. 
+. // dedup with  ties
+. restore, preserve
+
+. drop file
+
+. dtalink first 3 -3 middle 3 -3 last 3 -3 yankee 3 -3, cutoff(4) id(id) bestmatch noweight ties
+  6 matches were found.
+  Keeping best match for each id (keeping ties)
+  (0 pairs deleted.)
+
+Distribution of matched pair scores, among pairs with score >=4:
+
+Probabilist |
+ic matching |
+      score |      Freq.
+------------+------------+-----------------------------------------------------
+       9.00 |          3 |***
+      12.00 |          3 |***
+------------+------------+-----------------------------------------------------
+      Total |          6 
+The current configuration of the data is: one row per record.
+
+. list , sepby(_matchID)
+
+     +----------------------------------------------------------------------------+
+     | _matchID   id   _score   _match~g      first   middle        last   yankee |
+     |----------------------------------------------------------------------------|
+  1. |        1    1     9.00    Matched         M.               Mantle        1 |
+  2. |        1    1     9.00    Matched     Mickey               Mantle        1 |
+  3. |        1    1     9.00    Matched     Mickey               Mantle        1 |
+  4. |        1    7     9.00    Matched         M.               Mantle        1 |
+  5. |        1    7     9.00    Matched     Mickey               Mantle        1 |
+     |----------------------------------------------------------------------------|
+  6. |        2    2    12.00    Matched      Henry    Louis      Gehrig        1 |
+  7. |        2    2    12.00    Matched        Lou               Gehrig        1 |
+  8. |        2    8    12.00    Matched      Henry    Louis      Gehrig        1 |
+  9. |        2    8    12.00    Matched        Lou               Gehrig        1 |
+     |----------------------------------------------------------------------------|
+ 10. |        3    3     9.00    Matched       Babe                 Ruth        1 |
+ 11. |        3    3     9.00    Matched     George   Herman        Ruth        0 |
+ 12. |        3    3     9.00    Matched     George   Herman   Ruth, Jr.        1 |
+ 13. |        3    9     9.00    Matched       Babe                 Ruth        1 |
+ 14. |        3    9     9.00    Matched       Babe             Ruth, Jr        1 |
+ 15. |        3    9     9.00    Matched     George   Herman    Ruth, Jr        0 |
+     |----------------------------------------------------------------------------|
+ 16. |        4    4    12.00    Matched        Ted             Williams        0 |
+ 17. |        4    4    12.00    Matched   Theodore   Samuel    Williams        0 |
+ 18. |        4   10    12.00    Matched        Ted             Williams        0 |
+ 19. |        4   10    12.00    Matched   Theodore   Samuel    Williams        0 |
+     |----------------------------------------------------------------------------|
+ 20. |        5    5    12.00    Matched        Ted                  Cox        0 |
+ 21. |        5    5    12.00    Matched    William      Ted         Cox        0 |
+ 22. |        5   11    12.00    Matched        Ted                  Cox        0 |
+ 23. |        5   11    12.00    Matched    William      Ted         Cox        0 |
+     |----------------------------------------------------------------------------|
+ 24. |        6    6     9.00    Matched       Stan             Williams        0 |
+ 25. |        6   12     9.00    Matched       Stan             Williams        0 |
+     +----------------------------------------------------------------------------+
+
+. 
+. // dedup with  ties
+. restore, preserve
+
+. drop file
+
+. dtalink first 3 -3 middle 3 -3 last 3 -3 yankee 3 -3, cutoff(4) id(id) bestmatch noweight ties  combinesets
+  6 matches were found.
+  Keeping best match for each id (keeping ties)
+  (0 pairs deleted.)
+  (dtalink::combinesets required 0 iteration to achieve convergence)
+
+Distribution of matched pair scores, among pairs with score >=4:
+
+Probabilist |
+ic matching |
+      score |      Freq.
+------------+------------+-----------------------------------------------------
+       9.00 |          3 |***
+      12.00 |          3 |***
+------------+------------+-----------------------------------------------------
+      Total |          6 
+The current configuration of the data is: one row per record.
+
+. list , sepby(_matchID)
+
+     +----------------------------------------------------------------------------+
+     | _matchID   id   _score   _match~g      first   middle        last   yankee |
+     |----------------------------------------------------------------------------|
+  1. |        1    1     9.00    Matched         M.               Mantle        1 |
+  2. |        1    1     9.00    Matched     Mickey               Mantle        1 |
+  3. |        1    1     9.00    Matched     Mickey               Mantle        1 |
+  4. |        1    7     9.00    Matched         M.               Mantle        1 |
+  5. |        1    7     9.00    Matched     Mickey               Mantle        1 |
+     |----------------------------------------------------------------------------|
+  6. |        2    2    12.00    Matched      Henry    Louis      Gehrig        1 |
+  7. |        2    2    12.00    Matched        Lou               Gehrig        1 |
+  8. |        2    8    12.00    Matched      Henry    Louis      Gehrig        1 |
+  9. |        2    8    12.00    Matched        Lou               Gehrig        1 |
+     |----------------------------------------------------------------------------|
+ 10. |        3    3     9.00    Matched       Babe                 Ruth        1 |
+ 11. |        3    3     9.00    Matched     George   Herman        Ruth        0 |
+ 12. |        3    3     9.00    Matched     George   Herman   Ruth, Jr.        1 |
+ 13. |        3    9     9.00    Matched       Babe                 Ruth        1 |
+ 14. |        3    9     9.00    Matched       Babe             Ruth, Jr        1 |
+ 15. |        3    9     9.00    Matched     George   Herman    Ruth, Jr        0 |
+     |----------------------------------------------------------------------------|
+ 16. |        4    4    12.00    Matched        Ted             Williams        0 |
+ 17. |        4    4    12.00    Matched   Theodore   Samuel    Williams        0 |
+ 18. |        4   10    12.00    Matched        Ted             Williams        0 |
+ 19. |        4   10    12.00    Matched   Theodore   Samuel    Williams        0 |
+     |----------------------------------------------------------------------------|
+ 20. |        5    5    12.00    Matched        Ted                  Cox        0 |
+ 21. |        5    5    12.00    Matched    William      Ted         Cox        0 |
+ 22. |        5   11    12.00    Matched        Ted                  Cox        0 |
+ 23. |        5   11    12.00    Matched    William      Ted         Cox        0 |
+     |----------------------------------------------------------------------------|
+ 24. |        6    6     9.00    Matched       Stan             Williams        0 |
+ 25. |        6   12     9.00    Matched       Stan             Williams        0 |
+     +----------------------------------------------------------------------------+
+
+. 
 . 
 . // basic dedup - wide format
 . restore, preserve
@@ -1400,6 +1520,180 @@ The current configuration of the data is: one row per record.
      +-----------------------------------------------------------------------------------+
 
 . 
+. // same thing with bestmatch(0) & ties & combinesets
+. restore, preserve
+
+. dtalink first 3 -3 middle 3 -3 last 3 -3 yankee 3 -3, cutoff(3) id(id) source(file) noweight bestmatch ties
+  10 matches were found.
+  Keeping best match for each id (keeping ties)
+  (4 rows deleted.)
+
+Distribution of matched pair scores, among pairs with score >=3:
+
+Probabilist |
+ic matching |
+      score |      Freq.
+------------+------------+-----------------------------------------------------
+       9.00 |          3 |***
+      12.00 |          3 |***
+------------+------------+-----------------------------------------------------
+      Total |          6 
+The current configuration of the data is: one row per record.
+
+. list , sepby(_matchID)
+
+     +-----------------------------------------------------------------------------------+
+     | _matchID   file   id   _score   _match~g      first   middle        last   yankee |
+     |-----------------------------------------------------------------------------------|
+  1. |        1      0    1     9.00    Matched         M.               Mantle        1 |
+  2. |        1      0    1     9.00    Matched     Mickey               Mantle        1 |
+  3. |        1      0    1     9.00    Matched     Mickey               Mantle        1 |
+  4. |        1      1    7     9.00    Matched         M.               Mantle        1 |
+  5. |        1      1    7     9.00    Matched     Mickey               Mantle        1 |
+     |-----------------------------------------------------------------------------------|
+  6. |        2      0    2    12.00    Matched      Henry    Louis      Gehrig        1 |
+  7. |        2      0    2    12.00    Matched        Lou               Gehrig        1 |
+  8. |        2      1    8    12.00    Matched      Henry    Louis      Gehrig        1 |
+  9. |        2      1    8    12.00    Matched        Lou               Gehrig        1 |
+     |-----------------------------------------------------------------------------------|
+ 10. |        3      0    3     9.00    Matched       Babe                 Ruth        1 |
+ 11. |        3      0    3     9.00    Matched     George   Herman        Ruth        0 |
+ 12. |        3      0    3     9.00    Matched     George   Herman   Ruth, Jr.        1 |
+ 13. |        3      1    9     9.00    Matched       Babe                 Ruth        1 |
+ 14. |        3      1    9     9.00    Matched       Babe             Ruth, Jr        1 |
+ 15. |        3      1    9     9.00    Matched     George   Herman    Ruth, Jr        0 |
+     |-----------------------------------------------------------------------------------|
+ 16. |        4      0    4    12.00    Matched        Ted             Williams        0 |
+ 17. |        4      0    4    12.00    Matched   Theodore   Samuel    Williams        0 |
+ 18. |        4      1   10    12.00    Matched        Ted             Williams        0 |
+ 19. |        4      1   10    12.00    Matched   Theodore   Samuel    Williams        0 |
+     |-----------------------------------------------------------------------------------|
+ 20. |        8      0    5    12.00    Matched        Ted                  Cox        0 |
+ 21. |        8      0    5    12.00    Matched    William      Ted         Cox        0 |
+ 22. |        8      1   11    12.00    Matched        Ted                  Cox        0 |
+ 23. |        8      1   11    12.00    Matched    William      Ted         Cox        0 |
+     |-----------------------------------------------------------------------------------|
+ 24. |       10      0    6     9.00    Matched       Stan             Williams        0 |
+ 25. |       10      1   12     9.00    Matched       Stan             Williams        0 |
+     +-----------------------------------------------------------------------------------+
+
+. 
+. // same thing with srcbestmatch(0)
+. restore, preserve
+
+. dtalink first 3 -3 middle 3 -3 last 3 -3 yankee 3 -3,  cutoff(3) id(id) source(file) noweight srcbestmatch(0) ties
+  10 matches were found.
+  Keeping best match for each _id in file 0 (keeping ties)
+  (4 rows deleted.)
+
+Distribution of matched pair scores, among pairs with score >=3:
+
+Probabilist |
+ic matching |
+      score |      Freq.
+------------+------------+-----------------------------------------------------
+       9.00 |          3 |***
+      12.00 |          3 |***
+------------+------------+-----------------------------------------------------
+      Total |          6 
+The current configuration of the data is: one row per record.
+
+. list , sepby(_matchID)
+
+     +-----------------------------------------------------------------------------------+
+     | _matchID   file   id   _score   _match~g      first   middle        last   yankee |
+     |-----------------------------------------------------------------------------------|
+  1. |        1      0    1     9.00    Matched         M.               Mantle        1 |
+  2. |        1      0    1     9.00    Matched     Mickey               Mantle        1 |
+  3. |        1      0    1     9.00    Matched     Mickey               Mantle        1 |
+  4. |        1      1    7     9.00    Matched         M.               Mantle        1 |
+  5. |        1      1    7     9.00    Matched     Mickey               Mantle        1 |
+     |-----------------------------------------------------------------------------------|
+  6. |        2      0    2    12.00    Matched      Henry    Louis      Gehrig        1 |
+  7. |        2      0    2    12.00    Matched        Lou               Gehrig        1 |
+  8. |        2      1    8    12.00    Matched      Henry    Louis      Gehrig        1 |
+  9. |        2      1    8    12.00    Matched        Lou               Gehrig        1 |
+     |-----------------------------------------------------------------------------------|
+ 10. |        3      0    3     9.00    Matched       Babe                 Ruth        1 |
+ 11. |        3      0    3     9.00    Matched     George   Herman        Ruth        0 |
+ 12. |        3      0    3     9.00    Matched     George   Herman   Ruth, Jr.        1 |
+ 13. |        3      1    9     9.00    Matched       Babe                 Ruth        1 |
+ 14. |        3      1    9     9.00    Matched       Babe             Ruth, Jr        1 |
+ 15. |        3      1    9     9.00    Matched     George   Herman    Ruth, Jr        0 |
+     |-----------------------------------------------------------------------------------|
+ 16. |        4      0    4    12.00    Matched        Ted             Williams        0 |
+ 17. |        4      0    4    12.00    Matched   Theodore   Samuel    Williams        0 |
+ 18. |        4      1   10    12.00    Matched        Ted             Williams        0 |
+ 19. |        4      1   10    12.00    Matched   Theodore   Samuel    Williams        0 |
+     |-----------------------------------------------------------------------------------|
+ 20. |        8      0    5    12.00    Matched        Ted                  Cox        0 |
+ 21. |        8      0    5    12.00    Matched    William      Ted         Cox        0 |
+ 22. |        8      1   11    12.00    Matched        Ted                  Cox        0 |
+ 23. |        8      1   11    12.00    Matched    William      Ted         Cox        0 |
+     |-----------------------------------------------------------------------------------|
+ 24. |       10      0    6     9.00    Matched       Stan             Williams        0 |
+ 25. |       10      1   12     9.00    Matched       Stan             Williams        0 |
+     +-----------------------------------------------------------------------------------+
+
+. 
+. // same thing with srcbestmatch(1)
+. restore, preserve
+
+. dtalink first 3 -3 middle 3 -3 last 3 -3 yankee 3 -3,  cutoff(3) id(id) source(file) noweight srcbestmatch(1) ties
+  10 matches were found.
+  Keeping best match for each _id in file 1  (keeping ties)
+  (4 rows deleted.)
+
+Distribution of matched pair scores, among pairs with score >=3:
+
+Probabilist |
+ic matching |
+      score |      Freq.
+------------+------------+-----------------------------------------------------
+       9.00 |          3 |***
+      12.00 |          3 |***
+------------+------------+-----------------------------------------------------
+      Total |          6 
+The current configuration of the data is: one row per record.
+
+. list , sepby(_matchID)
+
+     +-----------------------------------------------------------------------------------+
+     | _matchID   file   id   _score   _match~g      first   middle        last   yankee |
+     |-----------------------------------------------------------------------------------|
+  1. |        1      0    1     9.00    Matched         M.               Mantle        1 |
+  2. |        1      0    1     9.00    Matched     Mickey               Mantle        1 |
+  3. |        1      0    1     9.00    Matched     Mickey               Mantle        1 |
+  4. |        1      1    7     9.00    Matched         M.               Mantle        1 |
+  5. |        1      1    7     9.00    Matched     Mickey               Mantle        1 |
+     |-----------------------------------------------------------------------------------|
+  6. |        2      0    2    12.00    Matched      Henry    Louis      Gehrig        1 |
+  7. |        2      0    2    12.00    Matched        Lou               Gehrig        1 |
+  8. |        2      1    8    12.00    Matched      Henry    Louis      Gehrig        1 |
+  9. |        2      1    8    12.00    Matched        Lou               Gehrig        1 |
+     |-----------------------------------------------------------------------------------|
+ 10. |        3      0    3     9.00    Matched       Babe                 Ruth        1 |
+ 11. |        3      0    3     9.00    Matched     George   Herman        Ruth        0 |
+ 12. |        3      0    3     9.00    Matched     George   Herman   Ruth, Jr.        1 |
+ 13. |        3      1    9     9.00    Matched       Babe                 Ruth        1 |
+ 14. |        3      1    9     9.00    Matched       Babe             Ruth, Jr        1 |
+ 15. |        3      1    9     9.00    Matched     George   Herman    Ruth, Jr        0 |
+     |-----------------------------------------------------------------------------------|
+ 16. |        4      0    4    12.00    Matched        Ted             Williams        0 |
+ 17. |        4      0    4    12.00    Matched   Theodore   Samuel    Williams        0 |
+ 18. |        4      1   10    12.00    Matched        Ted             Williams        0 |
+ 19. |        4      1   10    12.00    Matched   Theodore   Samuel    Williams        0 |
+     |-----------------------------------------------------------------------------------|
+ 20. |        8      0    5    12.00    Matched        Ted                  Cox        0 |
+ 21. |        8      0    5    12.00    Matched    William      Ted         Cox        0 |
+ 22. |        8      1   11    12.00    Matched        Ted                  Cox        0 |
+ 23. |        8      1   11    12.00    Matched    William      Ted         Cox        0 |
+     |-----------------------------------------------------------------------------------|
+ 24. |       10      0    6     9.00    Matched       Stan             Williams        0 |
+ 25. |       10      1   12     9.00    Matched       Stan             Williams        0 |
+     +-----------------------------------------------------------------------------------+
+
+. 
 . // basic merge with "combined" matched sets --- notice that 4, 6, 10, and 12 are all matched together in a single _matchID
 . restore, preserve
 
@@ -1551,18 +1845,18 @@ Sorted by: _matchID  _file  _id  last  yankee
 
 . cap nois {
 .   parallel setclusters 2
-N Clusters: 2
+N Child processes: 2
 Stata dir:  C:\Program Files (x86)\Stata15/StataMP-64.exe
 .   parallel, by(subsetfile) processors(2): dtalink last 3 -3 yankee 1 -1 using "`file2'", cutoff(3)
 --------------------------------------------------------------------------------
-Parallel Computing with Stata (by GVY)
-Clusters   : 2
-pll_id     : 6m5pvebxf5
-Running at : C:\Users\kkranker\Documents\Stata\Ado\personal\d
-Randtype   : datetime
-Waiting for the clusters to finish...
-cluster 0001 has exited without error...
-cluster 0002 has exited without error...
+Parallel Computing with Stata
+Child processes: 2
+pll_id         : lo8kknh7v1
+Running at     : C:\Users\kkranker\Documents\Stata\dtalink\code-dtalink
+Randtype       : datetime
+Waiting for the child processes to finish...
+child process 0001 has exited without error...
+child process 0002 has exited without error...
 --------------------------------------------------------------------------------
 Enter -parallel printlog #- to checkout logfiles.
 --------------------------------------------------------------------------------
@@ -3340,19 +3634,19 @@ Sorted by:
 
 . cap nois {
 .   parallel setclusters 2
-N Clusters: 2
+N Child processes: 2
 Stata dir:  C:\Program Files (x86)\Stata15/StataMP-64.exe
 .   timer99: ///
 >   parallel, by(f) processors(2):  dtalink `v1_k', cutoff(5) wide
 --------------------------------------------------------------------------------
-Parallel Computing with Stata (by GVY)
-Clusters   : 2
-pll_id     : 1imngeb427
-Running at : C:\Users\kkranker\Documents\Stata\Ado\personal\d
-Randtype   : datetime
-Waiting for the clusters to finish...
-cluster 0002 has exited without error...
-cluster 0001 has exited without error...
+Parallel Computing with Stata
+Child processes: 2
+pll_id         : 95k6tdo2l3
+Running at     : C:\Users\kkranker\Documents\Stata\dtalink\code-dtalink
+Randtype       : datetime
+Waiting for the child processes to finish...
+child process 0002 has exited without error...
+child process 0001 has exited without error...
 --------------------------------------------------------------------------------
 Enter -parallel printlog #- to checkout logfiles.
 --------------------------------------------------------------------------------
@@ -3670,7 +3964,7 @@ matrices:
 . 
 . log close dtalink_example
       name:  dtalink_example
-       log:  C:\Users\kkranker\Documents\Stata\Ado\personal\d\dtalink_example.log
+       log:  C:\Users\kkranker\Documents\Stata\dtalink\code-dtalink\dtalink_example.log
   log type:  text
- closed on:  13 Feb 2019, 09:45:09
+ closed on:   9 Sep 2019, 16:51:29
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------
