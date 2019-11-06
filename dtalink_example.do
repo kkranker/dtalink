@@ -16,6 +16,7 @@ cap nois log using "dtalink_example.log", replace name(dtalink_example)
 * Copyright (C) Mathematica Policy Research, Inc. This code cannot be copied, distributed or used without the express written permission of Mathematica Policy Research, Inc.
 
 pwd
+about
 which dtalink
 set processors `c(processors_max)'
 
