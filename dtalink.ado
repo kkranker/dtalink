@@ -41,7 +41,7 @@ program define dtalink, rclass
     CALcweights             /// calculate weights
     BESTmatch               /// drop 2nd-best matches.  See notes below.
     SRCBESTmatch(integer -1) /// drop 2nd-best matches for source=0 observations or source=1 observations (but not both). See notes below.
-    TIEs                    /// keeps ties when bestmatch and scrbestmatc() are otherwise dropping 2nd-best matches
+    TIEs                    /// modifies the bestmatch and scrbestmatch() options to keep ties (when it would otherwise break ties arbitrarily)
     COMBINEsets             /// creates extra large groups that may contain more than one id(). See notes below.
     ALLScores               /// keeps all scores for a pair, not just the maximum score (By default, the program only keeps the max score for a matched pair.  This option keeps all scores for a pair. (This only has an effect on the results if id() is not unique.) (implies nomerge)
                             ///
@@ -487,11 +487,11 @@ program define dtalink, rclass
 
   // The srcbestmatch() option deals with case where an `id' in one file (0 or 1) is assigned to multiple _matchIDs.
   // For each `id' in file=`srcbestmatch', we keep each _matchIDs with the highest score.
-  else if inlist(`srcbestmatch',0,1)  & "`ties'"=="ties" {
+  else if (inlist(`srcbestmatch',0,1) & "`ties'"=="ties") {
     local adj_srcbestmatch = cond("`sourcevar'"!="",1-`srcbestmatch',`srcbestmatch') // we might have switched left/right above
     mata: `D'.dropinferior(`adj_srcbestmatch')
   }
-  else if inlist(`srcbestmatch',0,1)  & "`ties'"=="" {
+  else if (inlist(`srcbestmatch',0,1) & "`ties'"=="") {
     local adj_srcbestmatch = cond("`sourcevar'"!="",1-`srcbestmatch',`srcbestmatch') // we might have switched left/right above
     mata: `D'.bestmatch(`adj_srcbestmatch')
   }

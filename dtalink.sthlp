@@ -50,6 +50,7 @@ If a caliper is not specified, exact matching is used.{p_end}
 {synopt:{opt calc:weights}}recommends weights for next run{p_end}
 {synopt:{opt best:match}}enables 1:1 linking{p_end}
 {synopt:{opt srcbest:match(0|1)}}enables 1:M or M:1 linking{p_end}
+{synopt:{opt ties}}keep ties with the {opt bestmatch} and {opt scrbestmatch()} options {p_end}
 {synopt:{opt combine:sets}}creates groups that may contain more than three cases{p_end}
 {synopt:{opt alls:cores}}keeps all scores for a pair, not just the maximum.{p_end}
 {synoptline}
@@ -225,6 +226,9 @@ and mothers could have more than one child.{p_end}
              {bind:|     3     13      8 |   |     3     13      8 |   |     3     13      8 | }{break}
              {bind:|     4     13      7 |   |     4     13      7 |   |                     | }{break}
              {bind:+---------------------+   +---------------------+   +---------------------+ }{p_end}
+
+{phang}{opt ties}modifies the behavior of the  {opt bestmatch} and {opt scrbestmatch()} options.
+With this option, ties are kept in the file rather than being broken arbitraily.
 
 {phang}{opt combinesets} is a subroutine to deal with case where an {cmd:id} is assigned to multiple _matchIDs.
 With this option, _matchID will be updated to include all {it:ids} that met the {it:cutoff}.
