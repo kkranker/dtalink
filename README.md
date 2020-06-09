@@ -4,11 +4,8 @@ dtalink implements probabilistic record linkage (a.k.a. probabilistic matching) 
 - deduplicating records in one data file
 - linking records in two data files
 
-[The presentation slides in this repository](https://github.com/kkranker/dtalink/raw/master/dtalink_slides.pdf) provide an introduction to the methods and an overview of the package.
-
 [These presentation slides](https://github.com/kkranker/dtalink/raw/master/dtalink_slides.pdf)
-provide an introduction to the methods and an overview of the package. After installation, type
-`. help dtalink` to read the package [documentation](https://github.com/kkranker/dtalink/raw/master/dtalink.sthlp).
+provide an introduction to the methods and an overview of the package.
 
 
 # Installation
@@ -74,4 +71,5 @@ making it practical to implement the methods with large, administrative data fil
 (files with many rows or matching variables). It is a generic function which works with any data file.
 Flexible scoring and many-to-many matching techniques are also options.
 
-The Stata help file ([dtalink.sthlp](https://github.com/kkranker/dtalink/raw/master/dtalink.sthlp)) provides additional documentation and examples.
+The Stata help file ([dtalink.sthlp](https://github.com/kkranker/dtalink/raw/master/dtalink.sthlp)) provides additional documentation and examples. After installation, type
+`. help dtalink` to read the package [documentation](https://github.com/kkranker/dtalink/raw/master/dtalink.sthlp).
