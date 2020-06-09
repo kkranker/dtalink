@@ -1,21 +1,22 @@
 cd "`c(sysdir_personal)'/d"
+cd ..\..\..\dtalink\code-dtalink\
 cap log close dtalink_example
 clear all
 cls
 set linesize 160
 cap nois log using "dtalink_example.log", replace name(dtalink_example)
 
-*! $Id: dtalink_example.do,v 4b6216cc2d41 2019/02/13 16:40:49 kkranker $
+*! dtalink_example.do
 *! Probabilistic record linkage routine - examples
 *!
 *! This progam shows how the dtalink command might be used.
 *!
 *! By Keith Kranker
-*! $Date: 2019/02/13 16:40:49 $
 *
 * Copyright (C) Mathematica Policy Research, Inc. This code cannot be copied, distributed or used without the express written permission of Mathematica Policy Research, Inc.
 
 pwd
+about
 which dtalink
 set processors `c(processors_max)'
 
@@ -86,6 +87,19 @@ drop file
 dtalink first 3 -3 middle 3 -1 last 8 -5 yankee 0 -1, cutoff(4) id(id) combinesets noweight
 list , sepby(_matchID)
 
+// dedup with  ties
+restore, preserve
+drop file
+dtalink first 3 -3 middle 3 -3 last 3 -3 yankee 3 -3, cutoff(4) id(id) bestmatch noweight ties
+list , sepby(_matchID)
+
+// dedup with  ties
+restore, preserve
+drop file
+dtalink first 3 -3 middle 3 -3 last 3 -3 yankee 3 -3, cutoff(4) id(id) bestmatch noweight ties  combinesets
+list , sepby(_matchID)
+
+
 // basic dedup - wide format
 restore, preserve
 keep if file==0
@@ -130,6 +144,21 @@ list , sepby(_matchID)
 // same thing with srcbestmatch(1)
 restore, preserve
 dtalink first 3 -3 middle 3 -1 last 8 -5 yankee 2 0,  cutoff(3) id(id) source(file) noweight srcbestmatch(1)
+list , sepby(_matchID)
+
+// same thing with bestmatch(0) & ties & combinesets
+restore, preserve
+dtalink first 3 -3 middle 3 -3 last 3 -3 yankee 3 -3, cutoff(3) id(id) source(file) noweight bestmatch ties
+list , sepby(_matchID)
+
+// same thing with srcbestmatch(0)
+restore, preserve
+dtalink first 3 -3 middle 3 -3 last 3 -3 yankee 3 -3,  cutoff(3) id(id) source(file) noweight srcbestmatch(0) ties
+list , sepby(_matchID)
+
+// same thing with srcbestmatch(1)
+restore, preserve
+dtalink first 3 -3 middle 3 -3 last 3 -3 yankee 3 -3,  cutoff(3) id(id) source(file) noweight srcbestmatch(1) ties
 list , sepby(_matchID)
 
 // basic merge with "combined" matched sets --- notice that 4, 6, 10, and 12 are all matched together in a single _matchID

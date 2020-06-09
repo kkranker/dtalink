@@ -1,11 +1,13 @@
 v 3
 d dtalink: Stata package to implement probabilistic record linkage
 d
-d dtalink implements probabilistic record linkage (a.k.a. probabilistic matching) in Stata for two cases:
+d dtalink implements probabilistic record linkage
+d (a.k.a. probabilistic matching) in Stata for two cases:
 d - deduplicating records in one data file
 d - linking records in two data files
 d
-d See dtalink.sthlp for documentation and examples.
+d See dtalink.sthlp and dtalink_slides.pdf for
+d documentation and examples.
 d
 d Package by Keith Kranker, Mathematica Policy Research
 d

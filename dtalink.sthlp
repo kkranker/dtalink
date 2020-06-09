@@ -50,6 +50,7 @@ If a caliper is not specified, exact matching is used.{p_end}
 {synopt:{opt calc:weights}}recommends weights for next run{p_end}
 {synopt:{opt best:match}}enables 1:1 linking{p_end}
 {synopt:{opt srcbest:match(0|1)}}enables 1:M or M:1 linking{p_end}
+{synopt:{opt ties}}keep ties with the {opt bestmatch} and {opt scrbestmatch()} options {p_end}
 {synopt:{opt combine:sets}}creates groups that may contain more than three cases{p_end}
 {synopt:{opt alls:cores}}keeps all scores for a pair, not just the maximum.{p_end}
 {synoptline}
@@ -225,6 +226,9 @@ and mothers could have more than one child.{p_end}
              {bind:|     3     13      8 |   |     3     13      8 |   |     3     13      8 | }{break}
              {bind:|     4     13      7 |   |     4     13      7 |   |                     | }{break}
              {bind:+---------------------+   +---------------------+   +---------------------+ }{p_end}
+
+{phang}{opt ties}modifies the behavior of the  {opt bestmatch} and {opt scrbestmatch()} options.
+With this option, ties are kept in the file rather than being broken arbitraily.
 
 {phang}{opt combinesets} is a subroutine to deal with case where an {cmd:id} is assigned to multiple _matchIDs.
 With this option, _matchID will be updated to include all {it:ids} that met the {it:cutoff}.
@@ -449,9 +453,15 @@ For example, the following code will give a score of +10/-7 for matches/nonmatch
 {pstd}By Keith Kranker{break}
 Mathematica Policy Research{p_end}
 
-{pstd}This help file last updated $Date: 2019/02/13 03:41:09 ${p_end}
+{pstd}Suggested citation{p_end}
+{phang2}- Keith Kranker. "DTALINK: Stata module to implement probabilistic record linkage," Statistical Software Components S458504, Boston College Department of Economics, 2018.  Available at https://ideas.repec.org/c/boc/bocode/s458504.html.
+{break}or{p_end}
+{phang2}- Kranker, Keith. DTALINK: Faster Probabilistic Record Linking and Deduplication Methods in Stata for Large Data Files.” Presented at the 2018 Stata Conference, Columbus, OH, July 20, 2018.{p_end}
 
 {pstd}I thank Liz Potamites for testing early versions of the program and providing helpful feedback.{p_end}
+
+{pstd}Source code is available at {browse "https://github.com/kkranker/dtalink"}.
+Please report issues at  {browse "https://github.com/kkranker/dtalink/issues"}.{p_end}
 
 
 {marker examples}{...}
