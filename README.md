@@ -4,7 +4,9 @@ dtalink implements probabilistic record linkage (a.k.a. probabilistic matching) 
 - deduplicating records in one data file
 - linking records in two data files
 
-[The presentation slides in this repository](https://github.com/kkranker/dtalink/raw/master/dtalink_slides.pdf) provide an introduction to the methods and an overview of the package.
+[These presentation slides](https://github.com/kkranker/dtalink/raw/master/dtalink_slides.pdf)
+provide an introduction to the methods and an overview of the package.
+
 
 # Installation
 
@@ -22,11 +24,11 @@ To install from SSC, click on the links after typing this into your Stata comman
 
 # Suggested Citation
 
-* Keith Kranker. "DTALINK: Stata module to implement probabilistic record linkage," Statistical Software Components S458504, Boston College Department of Economics, 2018.  Available at https://ideas.repec.org/c/boc/bocode/s458504.html.
+* Keith Kranker. "DTALINK: Stata module to implement probabilistic record linkage," Statistical Software Components S458504, Boston College Department of Economics, 2018.  Available at https://ideas.repec.org/c/boc/bocode/s458504.html.  ([slides](https://github.com/kkranker/dtalink/raw/master/dtalink_slides.pdf))
 
 or
 
-* Kranker, Keith. DTALINK: Faster Probabilistic Record Linking and Deduplication Methods in Stata for Large Data Files.” Presented at the 2018 Stata Conference, Columbus, OH, July 20, 2018.
+* Kranker, Keith. DTALINK: Faster Probabilistic Record Linking and Deduplication Methods in Stata for Large Data Files.”  ed at the 2018 Stata Conference, Columbus, OH, July 20, 2018.
 
 Source code is available at https://github.com/kkranker/dtalink.
 Please report issues at https://github.com/kkranker/dtalink/issues.
@@ -69,4 +71,5 @@ making it practical to implement the methods with large, administrative data fil
 (files with many rows or matching variables). It is a generic function which works with any data file.
 Flexible scoring and many-to-many matching techniques are also options.
 
-The Stata help file (dtalink.sthlp) provides additional documentation and examples.
+The Stata help file ([dtalink.sthlp](https://github.com/kkranker/dtalink/raw/master/dtalink.sthlp)) provides additional documentation and examples. After installation, type
+`. help dtalink` to read the package [documentation](https://github.com/kkranker/dtalink/raw/master/dtalink.sthlp).
