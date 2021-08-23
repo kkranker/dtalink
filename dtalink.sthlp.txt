@@ -1,0 +1,509 @@
+                                                                                                ___  ____  ____  ____  ____(R)
+                                                                                               /__    /   ____/   /   ____/   
+                                                                                              ___/   /   /___/   /   /___/    
+                                                                                                Statistics/Data analysis      
+      
+      Title
+      
+          dtalink -- Probabilistic data linking or deduplication for large data files
+      
+      
+      Syntax
+      
+              . dtalink dspecs [if] [in] [using filename] [, options]
+      
+                  where dspecs = dspec [ dspec [ dspec [...]]]
+      
+                  and dspec = varname #1 #2 [#3]
+      
+                  and varname is a matching variable, #1 is the (positive) weight applied for a match, #2 is the weight
+                      applied for a nonmatch (negative), and #3 is the caliper for distance matching (positive).  If a
+                      caliper is not specified, exact matching is used.
+      
+      
+          options               Description
+          ------------------------------------------------------------------------------------------------------------------
+          Main options
+            source(varname)     identifies source file (for data linking)
+            cutoff(#)           determines the minimum score required to keep matched pairs; the default is cutoff(0)
+            id(varname)         identifies unique cases to be matched; use if there is more than one record (row) per case
+            block(blockvars)    declares blocking variables
+            calcweights         recommends weights for next run
+            bestmatch           enables 1:1 linking
+            srcbestmatch(0|1)   enables 1:M or M:1 linking
+            ties                keep ties with the bestmatch and scrbestmatch() options
+            combinesets         creates groups that may contain more than three cases
+            allscores           keeps all scores for a pair, not just the maximum.
+          ------------------------------------------------------------------------------------------------------------------
+          Options to format output file
+            wide                outputs a crosswalk file in a "wide" format (rather than "long")
+            nomerge             prevents the crosswalk file (in "long" format) from being merged back onto original data
+            missing             treats missing strings ("") as their own group in both non-numeric match variables and
+                                  blocking variables
+            fillunmatched       fills the _matchID variable with a unique identifier for unmatched observations; the default
+                                  is _matchID = . for unmatched observations
+          ------------------------------------------------------------------------------------------------------------------
+          using options
+            nolabel             do not copy value-label definitions from data set(s) on disk
+            nonotes             do not copy notes from data set(s) on disk
+          ------------------------------------------------------------------------------------------------------------------
+          Display options
+            noweighttable       suppresses the table with the matching weights
+            describe            show a list of variables in the new data set
+            examples(#)         prints approximately # rows to the log file as examples; the default is examples(0) (no
+                                  examples)
+          ------------------------------------------------------------------------------------------------------------------
+          Data linking is applied if the source() option or using are specified; otherwise, data deduplication is applied.
+          blockvars is a list of one or more blocking variables.  If multiple variables are entered, each unique combination
+            of the variables is considered a block.  To specify multiple sets of blocks, separate blocking variables with
+            "|", such as block(bvar1 | bvar2 bvar3 | bvar4).  (Variable name abbreviations are not allowed in blockvars.)
+          After the using, one specifies a valid filename.  Specify the filename in quotes if it contains blanks or other
+            special characters.  If a filename is specified without an extension, .dta is assumed.
+      
+      
+      
+      Description
+      
+          Stata users often need to link records from two or more data files or find duplicates within data files.
+          Probabilistic linking methods are often used when the file(s) do not have reliable or unique identifiers, causing
+          deterministic linking methods (such as Stata's merge, joinby, or duplicates commands) to fail.  For example, one
+          might need to link files that only include inconsistently spelled names, dates of birth with typos or missing
+          data, and addresses that change over time.  Probabilistic linking methods score each potential pair of records
+          using the matching variables and weights (Newcombe et al. 1959; Fellegi and Sunter 1969).  Pairs with higher
+          overall scores indicate a better match than pairs with lower scores.
+      
+          dtalink implements probabilistic linking methods (a.k.a. probabilistic matching) for two cases:
+              (1) linking records in two data files
+              (2) deduplicating records in one data file
+      
+          There are two ways to implement data linking (case 1):
+              (a) the user stacks the two data sets before running dtalink and provides a dummy to indicate the file in the
+                  source(varname) option, or
+              (b) the user provides the name of the second file with [using filename], in which case the master data set is
+                  assigned source=0 and the using data set is assigned source=1
+          If neither of these are specified, data deduplication (case 2) is implemented.
+      
+          The user specifies matching variables and matching weights.  For each matching variable, users can use one of two
+          methods to compare two records for a potential match:
+              (a) Exact matching awards positive weights if (X for observation 1) equals (X for observation 2), awards
+                  negative weights if the observations are not equal, and awards no weights if one of the observations is
+                  missing.
+              (b) Caliper matching awards positive weights if |(X for observation 1)-(X for observation 2)| is less than or
+                  equal to the caliper for X, awards negative weights if the difference is greater than the caliper, and
+                  awards no weights if X is missing for either of the observations.
+      
+          dtalink offers streamlined probabilistic linking methods.  The computationally heavy parts of the program are
+          implemented in a Mata class with parallelized Mata code, making it practical to implement the methods with large,
+          administrative data files (files with many rows or matching variables). It is a generic function which works with
+          any data file.  Flexible scoring and many-to-many matching techniques are also options.
+      
+      
+       Options
+      
+              +------+
+          ----+ Main +------------------------------------------------------------------------------------------------------
+      
+          source(varname) identifies the source file for data linking.  That is, the variable distinguishes between cases in
+              files A and B.  varname must be a dummy (equal to 0 or 1).  This option is not allowed when a using filename
+              is provided.  Specifying the source() option (or a using filename) implies data linking; data deduplication is
+              assumed if neither are provided.
+      
+          cutoff(#) determines the minimum score required to keep a potential a match.  Matched pairs with scores below the
+              specified amount are dropped (not returned to the user).  The default is cutoff(0).
+      
+          id(varname) identifies unique units if there is more than one record (row) per unit-to-be-matched.  (e.g., more
+              than one record [row] per person [unit]). Cases are scored using the two best-matching records.  The default
+              is to treat each row as a unique unit, by creating an id variable with this command: generate _id = _n
+      
+          block(blockvars) declares blocking variables.  Blocking reduces the computational burden of probabilistic
+              matching.  Instead of comparing each observation in a file to every other observation, blocking skips
+              potential match pairs that do not share at least one blocking variable in common.  Blocking variables can be
+              matching variables, and vice versa.  For example, blocks could be formed by lastname; to be considered a
+              match, two observations would need to match on lastname to be scored as a match.  (Matches that do not match
+              on lastname would not be compared at all.)
+      
+              blockvars is a list of one or more blocking variables.  If multiple variables are entered, each unique
+              combinations of the variables is considered a block.  To specify multiple sets of blocks, separate blocking
+              variables with "|", such as block(bvar1 | bvar2 bvar3 | bvar4).  (Variable name abbreviations are not allowed
+              in blockvars.)
+      
+              For large data sets, it is often advisable to specify several blocking variables.  Attempting to match with no
+              blocks could lead to undesirable run times.  Specifying only one or two blocking variables will only find
+              exact matches on those variables.  The blocking variables will usually also be included in the list of
+              matching variables.
+      
+          calcweights recommends weights for a following run.  When conducting the linking, this option tracks the
+              percentage of times a variable matches, separately for potential match pairs above and below the cutoff.
+              After the linking, it uses these percentages to compute recommended weights (for a re-run, perhaps)
+      
+              Weights are calculated as follows:
+                  r(new_dst_poswgt) = log_2(p1/p2)
+                  r(new_dst_negwgt) = log_2((1-p1)/(1-p2))
+                  where p1 is the percentage of times the variable matched among matches and p2 is the percentage of times
+                      the variable matched among nonmatches (using the current set of weights).
+      
+              This option is more computationally intensive than the default (not performing these calculations); specifying
+              it could more than double runtimes.
+      
+          bestmatch enables 1:1 linking to avoid cases where an id is assigned to multiple _matchIDs.  After running this
+              subroutine, each id will be assigned to no more than one _matchID.  The algorithm keeps the _matchID with the
+              highest score, as long as neither id in _matchID is assigned to a different _matchID with a higher score.
+              That is, second-best matches are dropped for a given id.  (Ties are broken in descending order by _score, then
+              ascending order by the id.) For example, the bestmatch option might be used when the two data sets contain
+              data on uniquely identified individuals and one is trying to match each person to only one other person.
+      
+              In the following example, the third matched pair is dropped by bestmatch because record 1 was "already"
+              matched to observation 10 with a higher score, and the fifth matched pair is dropped because record 13 was
+              "already" matched to record 3 with a higher score.
+      
+                               default                   bestmatch       
+                       +---------------------+   +---------------------+ 
+                       |  _id0   _id1 _score |   |  _id0   _id1 _score | 
+                       +---------------------+   +---------------------+ 
+                       |     1     10     15 |   |     1     10     15 | 
+                       |     2     12     13 |   |     2     12     13 | 
+                       |     1     11      9 |   |                     | 
+                       |     3     13      8 |   |     3     13      8 | 
+                       |     4     13      7 |   |                     | 
+                       +---------------------+   +---------------------+ 
+      
+          srcbestmatch(0|1) enables 1:M or M:1 linking to prevent an id in one of the files from being assigned to multiple
+              _matchIDs.  Users indicate a file: source=0 or source=1.  After running this subroutine, each id in the file
+              indicated (0 or 1) will be assigned to no more than one id in the other file.  However each id in the other
+              file could be assigned multiple _matchIDs.  Specifically, the algorithm keeps the _matchID with the highest
+              score for each id in the file indicated.  Second-best matches are dropped for ids in the specified file.
+              (Ties are are broken in descending order by _score, then ascending order by the ids in the non-specified
+              file.) The scrbestmatch(0) option might be used, for example, when file=0 contains data on mothers and file=1
+              contains data on children, and mothers could have more than one child.
+      
+              In the following example, the third matched pair is dropped by scrbestmatch(0) because record 1 was "already"
+              matched to observation 10 with a higher score.  The fifth matched pair is dropped by scrbestmatch(1) because
+              record 13 was "already" matched to record 3 with a higher score.
+      
+                             default                 srcbestmatch(0)           srcbestmatch(1)    
+                      +---------------------+   +---------------------+   +---------------------+ 
+                      |  _id0   _id1 _score |   |  _id0   _id1 _score |   |  _id0   _id1 _score | 
+                      +---------------------+   +---------------------+   +---------------------+ 
+                      |     1     10     15 |   |     1     10     15 |   |     1     10     15 | 
+                      |     2     12     13 |   |     2     12     13 |   |     2     12     13 | 
+                      |     1     11      9 |   |                     |   |     1     11      9 | 
+                      |     3     13      8 |   |     3     13      8 |   |     3     13      8 | 
+                      |     4     13      7 |   |     4     13      7 |   |                     | 
+                      +---------------------+   +---------------------+   +---------------------+ 
+      
+          tiesmodifies the behavior of the bestmatch and scrbestmatch() options.  With this option, ties are kept in the
+              file rather than being broken arbitraily.
+      
+          combinesets is a subroutine to deal with case where an id is assigned to multiple _matchIDs.  With this option,
+              _matchID will be updated to include all ids that met the cutoff.  One would often specify this option when
+              deduplicating a file (such as when one person appears three or more times in the data with different
+              identification numbers).
+      
+              In the following example, record 11 is combined into a single matched set with records 1 and 10 (since record
+              11 was matched to record 1) and records 3 and 4 were combined into a single matched set with records 2 and 12
+              (since they were both matched to record 12),
+      
+                                   default                       combinesets          
+                       +----------------------------+  +-----------------------------+ 
+                       | _id0 _id1 _score  _matchID |  |  _id0  _id1 _score  _matchID| 
+                       +----------------------------+  +-----------------------------+ 
+                       |    1   10     15         1 |  |     1    10     15       1  | 
+                       |    2   12     13         2 |  |     2    12     13       2  | 
+                       |    1   11      9         3 |  |     1    11      9       1  | 
+                       |    3   12      8         4 |  |     3    12      8       2  | 
+                       |    4   12      7         5 |  |     4    12      7       2  | 
+                       +----------------------------+  +-----------------------------+ 
+      
+          allscores keeps all scores for a pair, not just the maximum score.  By default, the program only keeps the max
+              score for a matched pair; but if allscores is used the program keeps all scores for a pair.  (This only has an
+              effect on the results if id() is not unique.  That is, there are multiple rows per unit to be matched.)
+      
+              In the following example, the allscores option would keep the second row, which shows 1 and 10 being linked
+              with a second score (13 in addition to 15).
+      
+                              default              allscores       
+                       +------------------+  +-------------------+ 
+                       | _id0 _id1 _score |  |  _id0  _id _score | 
+                       +------------------+  +-------------------+ 
+                       |    1   10     15 |  |     1   10     15 | 
+                       |                  |  |     1   10     13 | 
+                       +------------------+  +-------------------+ 
+      
+      
+              +------------------------+
+          ----+ Output file formatting +------------------------------------------------------------------------------------
+      
+          Matched pairs can be returned in a crosswalk using a wide format or a long format (see reshape).  In either
+          format, a pair is defined by two cases (that is, two _ids), a score (_score), and a unique identification number
+          (_matchID).  In the long format, an additional variable (_source) is necessary to identify the source file when
+          linking two data files. (See below for an example.)
+      
+                                Wide format                       Long format          
+                      +----------------------------+  +------------------------------+
+                      |  _id0 _id1 _score _matchID |  | _matchID _source  _id _score |
+                      +----------------------------+  +------------------------------+
+                      |     1   10     15        1 |  |        1      0     1     15 |
+                      |     2   12     13        2 |  |        1      1    10     15 |
+                      |     1   11      9        3 |  +------------------------------+
+                      |     3   13      8        4 |  |        2      0     2     13 |
+                      +----------------------------+  |        2      1    12     13 |
+                                                      +------------------------------+
+                                                      |        3      0     1      9 |
+                                                      |        3      1    11      9 |
+                                                      +------------------------------+
+                                                      |        4      0     3      8 |
+                                                      |        4      1    13      8 |
+                                                      +------------------------------+
+      
+          By default, (1) results are returned in a long format, (2) the results are merged with the original data file, and
+          (3) unmatched cases are included in the crosswalk (with _score and _matchID set to missing).  The following
+          options can be used to modify these defaults:
+      
+          wide prevents the crosswalk file from being reshaped from "wide" into "long" format (and turns on nomerge).
+      
+          nomerge prevents the crosswalk file (in "long" format) from being merged back onto the original data.  (No merge
+              is performed if the wide option is used.)
+      
+          missing treats missing strings ("") in non-numeric match variables and block variables as their own group.  See
+              remarks below. USE THIS OPTION WITH CAUTION.  It is probably better to pre-process any missing data before
+              running dtalink.
+      
+          fillunmatched fills the _matchID variable with a unique identifier for unmatched observations.  (This option is
+              ignored when nomerge is specified.)
+      
+      
+              +---------------+
+          ----+ Using options +---------------------------------------------------------------------------------------------
+      
+          The nolabel and nonotes options affect how the using filename is appended.  See append for documentation.
+      
+      
+              +-----------------+
+          ----+ Display options +-------------------------------------------------------------------------------------------
+      
+          noweighttable suppresses the table with the matching weights.
+      
+          describe shows a list of variables in the new data set (using the describe command).
+      
+          examples(#) prints approximately # rows to the log file as examples. The default is examples(0) (no examples).
+      
+       
+      
+      Remarks
+      
+          (1) Preparing data for linkage is the most important step to achieve satisfactory results (Herzog et al. 2007).
+              Easy data cleaning steps can greatly improve results, such as:
+              - Converting strings to upper (or lower) case
+              - Splitting dates and addresses into subcomponents
+              - Standardizing abbreviations and other values (reclink2 includes helpful commands)
+              - Removing or standardize punctuation
+              - Using phonetic algorithms to code names (such as soundex(), nysiis, or StataStringUtilities)
+      
+          (2) Weights should reflect the probability a variable matches for true versus false matches (Fellegi and Sunter
+              1969).  Weights should be higher for linking variables with more specificity (like Social Security number or
+              telephone number) and lower for variables with less specificity (like city or age).
+      
+              Users can estimate weights using dtalink and a training data file (Execute dtalink on the test dataset with
+              the calcweights option.  Give the true matched pair identifier a large positive matching weight and set the
+              remaining weights to zero.) Without training data, consider using a good linking variable (like Social
+              Security number) and use the calcweights to obtain recommended weights for the remaining matching variables in
+              the same way.  More advanced techniques could be used to estimate weights (e.g., with advanced predictive
+              analytic techniques).
+      
+          (3) To choose cutoffs, users could consider hypothetical cases.  For example, users could ask "What if records
+              match on SSN and date of birth, but nothing else?" Alternatively, users could start with a low cutoff, review
+              the results, and delete pairs if a higher cutoff is needed.
+      
+              With well-calibrated weights, a good cutoff would typically have only a few matched pairs near it, with a mix
+              of "good" and "bad" matches.
+      
+              Ultimately, there is no universal best approach.  Users need to carefully weigh inherent trade-offs between
+              sensitivity and specificity with their specific data file(s).
+      
+          (4) Missing data (that is, "" for string variables or . for numeric variables) do not count as a match or a
+              nonmatch.  That is, neither a positive nor negative weight is applied if either observation in a potential
+              match pair has missing data for a matching variable.  However, for numeric variables, special missing codes
+              count as a match when exact-matching.  (That is, two observations with .a match [receive the positive weight],
+              but an observation with 5 does not match another observation with .a [receives the negative weight].) To
+              prevent special missing codes from being counted as a match, temporarily recode them to "." before running
+              dtalink.
+      
+              Likewise, missing data in the blocking variables usually keep observations from being compared.  If one or two
+              observations in a potential match pair have missing data for a blocking variable, they are not compared
+              (unless they both have nonmissing and matching data for another blocking variable.) However, special missing
+              codes (such as ".a") for numeric variables would be considered a block.
+      
+              The missing option overrides the default behavior for string matching variables and string blocking variables.
+              When this option is specified, two observations are compared if they both have missing data ("") for (one or
+              more) block variable, and/or they are considered to be a match if a variable is missing ("") for both
+              observations.  USE THIS OPTION WITH CAUTION, given that it is uncommon for two records with missing values to
+              be considered a match.
+      
+          (5) When a matching variable is specified with a numeric caliper, it uses distance matching even if the caliper is
+              0.  Caliper matching variables must be numeric.  Only exact matching is allowed for string variables; users
+              are not allowed to provide a caliper for string variables.
+      
+              Exact matching is equivalent to distance matching with caliper=0, but exact matching is usually faster.
+              Consider using one of the following three commands to implement exact matching:
+                  (a) . dtalink var1 1 0   var2 1 0  
+                  (b) . dtalink var1 1 0 0 var2 1 0 0
+                  (c) . dtalink var1 1 0   var2 1 0 0
+      
+              All three commands will give the same results, but (a) may run up to 50% faster than (b) or (c).
+              Interestingly, testing with some data sets has shown that (b) can sometimes be faster than (c).  This is most
+              common when many distance matching variables are specified, but very few exact matching variables are
+              specified.
+      
+          (6) When distance matching, asymmetric calipers can be achieved by adding or subtracting a scalar from a variable
+              in one of the two files.  For example, one project team wanted to match on a date variable and wanted to
+              consider the dates a "match" if the date in file 0 was within -279 days to +59 days of the date in file 1.  To
+              achieve this, the team added "110" to the date in file 0 and used a caliper of "169," since
+                      -279 <= (Date0 - Date1) <= 59
+                      -279 + 110 <= (Date0 - Date1 + 110) <= 59 + 110
+                      -169 <= (Date0 + 110 - Date1)  <= 169
+                      | ( (Date0 + 110) - Date1 ) | <= 169
+      
+          (7) Users commonly match on a variable while also matching on a modified version of the variable. When doing this,
+              it is important to consider how the weights accumulate when records match on none of, some of, or all of the
+              versions of the matching variable.
+      
+              For example, the nysiis command and the following code could be used to match on a name and the name's
+              phonetic code:
+                  . nysiis name, generate(name_nysiis)
+                  . dtalink name 7 0 name_nysiis 3 -2
+      
+              This code would award a net weight of
+                  +10 if records have the same name (+7) and therefore have the same NYSIIS code too (+3),
+                   +3 if records have the same NYSIIS code (+3) but don't have the exact same name (0), and
+                   -2 if records don't have the same NYSIIS code (-2) and therefore don't have the same name either (0).
+      
+              This concept has wide-ranging applications. For example, a user could break up an address into its
+              subcomponents (house number, street name, city, state, zip code) and award a "bonus" score for a complete
+              match, or break up a Social Security number into 3-digit segments and give a "bonus" score for matching on all
+              9 digits.
+      
+              Similarly, with caliper matching, users can give larger weights for a "close" match and small weights for a
+              "far" match.  Consider the following example:
+                  . dtalink date 5 0 date 3 0 7 date 2 -2 30
+      
+              This would award a net weight of
+                  +10 if date matches exactly (5+3+2),
+                   +5 if date matches within 1 to 7 days (0+3+2),
+                   +2 if date matches within 8 to 30 days (0+0+2), and
+                   -2 if date does not match within 30 days (0+0-2).
+      
+          (8) Jaro (1995) and Winkler (1988, 1989) proposed giving larger matching weights (in absolute value) for values
+              that are relatively rare.  For example, users may wish to give a weight of 10 to two records that match with
+              the last name "Kranker" but only give a weight of 7 to two records that match with the last name "Smith." Or,
+              as another example, one might consider giving higher weights to a match in a small ZIP code than a match in a
+              large ZIP code.  This technique was not built into dtalink because it would substantially increase runtimes.
+      
+              A partial solution is to create a copy of a variable that is nonmissing for "rare" values (e.g., "Kranker")
+              but missing for "common" values (e.g., "Smith").  For example, the following code will give a score of +10/-7
+              for matches/nonmatches on "rare" names (less than 50 rows in the data set with that name), but it will give a
+              score of +7/-5 for matches/nonmatches on "common" names:
+                  . bysort name: gen name_count = _N
+                  . clonevar rare_name = name if name_count <= 50
+                  . dtalink name 7 -5 rare_name 3 -2
+      
+      
+      Author
+      
+          By Keith Kranker
+          Mathematica Policy Research
+      
+          Suggested citation
+              - Keith Kranker. "DTALINK: Stata module to implement probabilistic record linkage," Statistical Software
+                  Components S458504, Boston College Department of Economics, 2018.  Available at
+                  https://ideas.repec.org/c/boc/bocode/s458504.html.
+                  or
+              - Kranker, Keith. DTALINK: Faster Probabilistic Record Linking and Deduplication Methods in Stata for Large
+                  Data Files.” Presented at the 2018 Stata Conference, Columbus, OH, July 20, 2018.
+      
+          I thank Liz Potamites for testing early versions of the program and providing helpful feedback.
+      
+          Source code is available at https://github.com/kkranker/dtalink.  Please report issues at 
+          https://github.com/kkranker/dtalink/issues.
+      
+      
+      Examples
+      
+          . dtalink ssn 15 -5 lastname 3.2 -1.0 firstname 3.2 -.9 dob 6.2 -1.7 1 dob 1 -1 30 dob 1 -1 365, source(fileid)
+              block(lastname_firstletter firstname_firstletter | ssn_first3digits) cutoff(10)
+      
+          For more examples, see dtalink_example.do
+      
+      
+      Stored results
+      
+          dtalink creates the following variables and stores the following in r():
+      
+          Variables      
+            _score               probabilistic matching score
+            _matchID             identification number assigned to a matched set (that is, linked records)
+            _source              the source file (data linking only)
+            _id0                 record identification number in file 0 (data linking only; wide format only)
+            _id1                 record identification number in file 1 (data linking only; wide format only)
+            _id                  record identification number (long format only)
+            _matchflag           match indicator (0/1)
+      
+          Scalars        
+            r(cutoff)            cutoff (minimum score that would be returned)
+            r(pairsnum)          number of matched pairs
+            r(scores_mean)       mean of scores
+            r(scores_sd)         standard deviation of scores
+            r(scores_min)        mininum score across all matched sets
+            r(scores_max)        maximum score across all matched sets
+            r(misscheck)         = 0 if nomisscheck option was specified, otherwise 1
+      
+          Strings        
+            r(cmd)               dtalink
+            r(cmdline)           command as typed
+            r(using)             filename (if specified)
+            r(idvar)             name of id variable (if specified)
+            r(mtcvars)           list of exact matching variables (if any were specified)
+            r(mtcposwgt)         list of positive weights corresponding to the exact matching variables (if any were
+                                  specified)
+            r(mtcnegwgt)         list of negative weights corresponding to the exact matching variables (if any were
+                                  specified)
+            r(dstvars)           list of caliper matching variables (if any were specified)
+            r(dstradii)          list of radii corresponding to the caliper matching variables) (if any were specified)
+            r(dstposwgt)         list of positive weights corresponding to the caliper matching variables (if any were
+                                  specified)
+            r(dstnegwgt)         list of negative weights corresponding to the caliper matching variables (if any were
+                                  specified)
+            r(blockvars)         list of blocking variables (if any were specified)
+            r(options)           combinesets, bestmatch, srcbestmatch(0), srcbestmatch(1), or allscores (if any of these
+                                  options were specified)
+      
+          Additional results for deduplication
+            r(numfiles)          1
+            r(N)                 number of observations
+      
+          Additional results when linking two files
+            r(numfiles)          2
+            r(N0)                number of observations in file 0
+            r(N1)                number of observations in file 1
+      
+          Additional results when calcweights is specified
+            r(new_wgt_specs)     code snippet to implement recommended weights on next re-run
+            r(new_mtc_poswgt)    recommended (positive) weights for matches on exact matching variables
+            r(new_mtc_negwgt)    recommended (negative) weights for nonmatches on exact matching variables
+            r(new_dst_poswgt)    recommended (positive) weights for matches on caliper matching variables
+            r(new_dst_negwgt)    recommended (negative) weights for nonmatches on caliper matching variables
+            r(new_weights)       recommended weights arranged in tabular (matrix) form
+      
+      
+      References
+      
+          Fellegi, I. P., and A. B. Sunter. 1969. "A Theory for Record Linkage." Journal of the American Statistical
+                   Association, vol. 64, no. 328, 1969, p. 1183. doi:10.2307/2286061.
+          Herzog, T. N., F. J. Scheuren, and W. E. Winkler. Data Quality and Record Linkage Techniques. New York: Springer,
+                   2007.
+          Jaro, M. A. "Probabilistic Linkage of Large Public Health Data Files." Statistics in Medicine, vol. 14, no. 5–7,
+                   1995, pp. 491–498.
+          Newcombe, H. B., J. M. Kennedy, S. J. Axford, and A. P. James. "Automatic Linkage of Vital Records." Science, vol.
+                   130, no. 3381, October 1959, pp. 954–959.
+          Winkler, W. E. "String Comparator Metrics and Enhanced Decision Rules in the Fellegi-Sunter Model of Record
+                   Linkage." Pages 354–359 in 1990 Proceedings of the Section on Survey Research. Alexandria, VA: American
+                   Statistical Association, 1990.
