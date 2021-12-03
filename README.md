@@ -1,8 +1,8 @@
-# stata-dtalink
-DTALINK: Stata module to implement probabilistic record linkage
+# dtalink: Stata package to implement probabilistic record linkage
+
 by Keith Kranker
 
-SQL and SAS example
+# SQL and SAS example
 
 I was asked how to perform probabilistic record linkage using SQL or SAS.
 One option is to use a SQL cross join, like in this toy example.
