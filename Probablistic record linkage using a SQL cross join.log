@@ -1,0 +1,256 @@
+1                                           The SAS System            12:50 Thursday, December 2, 2021
+
+NOTE: Copyright (c) 2002-2012 by SAS Institute Inc., Cary, NC, USA. 
+NOTE: SAS (r) Proprietary Software 9.4 (TS1M3) 
+      Licensed to MATHEMATICA POLICY RESEARCH INC, Site 70083794.
+NOTE: This session is executing on the X64_8PRO  platform.
+
+
+
+NOTE: Updated analytical products:
+      
+      SAS/STAT 14.1
+      SAS/ETS 14.1
+      SAS/IML 14.1
+
+NOTE: Additional host information:
+
+ X64_8PRO WIN 6.2.9200  Workstation
+
+NOTE: SAS initialization used:
+      real time           0.65 seconds
+      cpu time            0.56 seconds
+      
+1          * Example of performing probablistic record linkage with a SQL cross join
+2          * by Keith Kranker
+3          * November 30, 2021;
+4          
+5          ********************************************
+6          Create two fake datasets, each with five
+7          matching variables (x1, x2, x3, x4, x5)
+8          ********************************************;
+9          
+10         data A;
+11           call streaminit(1);
+12           length id x1 x2 x3 8; length x4 x5 $3;
+13           do id = 1 to 100; /* record id needs to be unique in each file */
+14              x1 = id + 80;
+15              x2 = rand("TABLE", 0.4) - 1;
+16              x3 = 25+floor(10*rand("UNIFORM"));
+17              x4 = byte(int(65+10*rand("UNIFORM")));
+18              x5 = byte(int(65+26*rand("UNIFORM")));
+19              output;
+20           end;
+21         run;
+
+NOTE: The data set WORK.A has 100 observations and 6 variables.
+NOTE: DATA statement used (Total process time):
+      real time           0.07 seconds
+      cpu time            0.04 seconds
+      
+
+22         proc print data=A(obs=10);
+23           title 'Example records in file A';
+24         run;
+
+NOTE: There were 10 observations read from the data set WORK.A.
+2                                           The SAS System            12:50 Thursday, December 2, 2021
+
+NOTE: The PROCEDURE PRINT printed page 1.
+NOTE: PROCEDURE PRINT used (Total process time):
+      real time           0.14 seconds
+      cpu time            0.06 seconds
+      
+
+25         
+26         data B;
+27           call streaminit(2);
+28           length id x1 x2 x3 8; length x4 x5 $3;
+29           do id = 1 to 250; /* record id needs to be unique in each file */
+30              x1 = id + 120;
+31              x2 = rand("TABLE",0.6) - 1;
+32              x3 = 25+floor(10*rand("UNIFORM"));
+33              x4 = byte(int(65+11*rand("UNIFORM")));
+34              x5 = byte(int(65+26*rand("UNIFORM")));
+35              output;
+36           end;
+37         run;
+
+NOTE: The data set WORK.B has 250 observations and 6 variables.
+NOTE: DATA statement used (Total process time):
+      real time           0.03 seconds
+      cpu time            0.03 seconds
+      
+
+38         proc print data=B(obs=10);
+39           title 'Example records in file B';
+40         run;
+
+NOTE: There were 10 observations read from the data set WORK.B.
+NOTE: The PROCEDURE PRINT printed page 2.
+NOTE: PROCEDURE PRINT used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+41         
+42         
+43         
+44         *******************
+45         Set up the linkage
+46         *******************;
+47         
+48         * poswgt# is added to the score if two observations match on variable x#;
+49         %LET poswgt1a =  0.5;  /* Note, we have two sets of weights for variable x1.*/
+50         %LET poswgt1b =  9.0;  /* The dtalink documentation explains why we do that.*/
+51         %LET poswgt2  =  0.2;
+52         %LET poswgt3  =  5.0;
+53         %LET poswgt4  =  0.4;
+54         %LET poswgt5  =  5.5;
+55         
+56         * negwgt# is added to the score if two observations do not match on variable x#;
+57         %LET negwgt1a =    0;
+3                                           The SAS System            12:50 Thursday, December 2, 2021
+
+58         %LET negwgt1b = -2.0;
+59         %LET negwgt2  = -0.5;
+60         %LET negwgt3  = -0.2;
+61         %LET negwgt4  = -0.8;
+62         %LET negwgt5  = -1.5;
+63         
+64         * variable x# is considered a "match" if the two observatiosn are within radius#;
+65         %LET radius1b = 5;
+66         %LET radius3  = 2;
+67         
+68         * autmatically accept linkages with scores above 10;
+69         %LET accept_cutoff = 10;
+70         
+71         * review linkage with scores above 9 (but below 10);
+72         %LET review_cutoff = 9;
+73         
+74         
+75         ********************
+76         Perform the linkage
+77         ********************;
+78         
+79         proc sql;
+80           title 'View S peforms the cross join and computes probabilistic linking scores';
+81           create view S as
+82             select A.id as id_A,
+83                    B.id as id_B,
+84                    0 + ifn(A.x1 EQ B.x1                  , &poswgt1a., &negwgt1a.)
+85                      + ifn(abs(A.x1 - B.x1) <= &radius1b., &poswgt1b., &negwgt1b.)
+86                      + ifn(A.x2 EQ B.x2                  , &poswgt2. , &negwgt2. )
+87                      + ifn(abs(A.x3 - B.x3) <= &radius3. , &poswgt3. , &negwgt3. )
+88                      + ifn(A.x4 EQ B.x4                  , &poswgt4. , &negwgt4. )
+89                      + ifn(A.x5 EQ B.x5                  , &poswgt5. , &negwgt5. ) as score
+90             from A cross join B;
+NOTE: SQL view WORK.S has been defined.
+91         
+92           title 'Table Lw runs view S, keeping linkages with score > &review_cutoff.';
+93           create table Lw as
+94             select monotonic() as id_L label='unique ID for each linked dyad',
+95                    *,
+96                    case
+97                      when (score < &accept_cutoff.)
+98                      then "Review"
+99                      else "Accept"
+100                   end as link_status
+101              from S
+102              where score >= &review_cutoff.
+103              order by id_L;
+NOTE: The execution of this query involves performing one or more Cartesian product joins that can 
+      not be optimized.
+NOTE: Table WORK.LW created, with 347 rows and 5 columns.
+
+104        
+105          title 'Examples of linked records in file Lw';
+106          select * from Lw(obs = 20);
+4                                           The SAS System            12:50 Thursday, December 2, 2021
+
+107        run;
+NOTE: PROC SQL statements are executed immediately; The RUN statement has no effect.
+108        
+109        * Note: At this point, one record in file A might be linked to two different
+110                records in file B, and vice-versa. I have a method to deal with this
+111                in the dtalink Stata package. Those methods could be easily replicated
+112                in SAS or you can come up with different rules as needed.;
+113        
+114        * Note: Probabilistic record de-duplication essentially amounts to linking
+115                one file with itself. However, there is an extra step that prevents a
+116                particular record from being linked to itself.;
+117        
+118        
+119        *********************
+120        * Review the linkage
+121        *********************;
+122        
+NOTE: The PROCEDURE SQL printed page 3.
+NOTE: PROCEDURE SQL used (Total process time):
+      real time           0.12 seconds
+      cpu time            0.07 seconds
+      
+
+123        proc tabulate data = Lw;
+124          title 'Review the number of linkages and the distribution of scores in Lw';
+125          class link_status;
+126          var id_L score;
+127          table link_status all, score * (N min mean p50 max);
+128        run;
+
+NOTE: There were 347 observations read from the data set WORK.LW.
+NOTE: The PROCEDURE TABULATE printed page 4.
+NOTE: PROCEDURE TABULATE used (Total process time):
+      real time           0.04 seconds
+      cpu time            0.01 seconds
+      
+
+129        
+130        proc sql;
+131          title 'File Lt is equivalent to Lw, only it is reshaped from wide to tall';
+132          create table Lt as
+133            select 'A' as file, * from Lw(rename=(id_A=id) drop=id_B)
+134            outer union corr
+135            select 'B' as file, * from Lw(rename=(id_B=id) drop=id_A)
+136            order by id_L, file;
+NOTE: Table WORK.LT created, with 694 rows and 5 columns.
+
+137        
+138          title 'Examples of linked records in file Lt';
+139          select * from Lt(obs = 10);
+140        
+141          title 'View AB stacks files A and B for the next step';
+142          create view AB as
+143            select 'A' as file, * from A
+5                                           The SAS System            12:50 Thursday, December 2, 2021
+
+144            outer union corr
+145            select 'B' as file, * from B;
+NOTE: SQL view WORK.AB has been defined.
+146        
+147          title 'Review cases with scores between &review_cutoff. and &accept_cutoff.';
+148          create view printout as
+149            select *
+150            from Lt
+151          left join AB
+152            on Lt.id = AB.id & Lt.file = AB.file
+153            where link_status EQ "Review"
+154            order by -score, id_L, file;
+NOTE: SQL view WORK.PRINTOUT has been defined.
+155          select * from printout;
+WARNING: Column named file is duplicated in a select expression (or a view). Explicit references to 
+         it will be to the first one.
+NOTE: The query as specified involves ordering by an item that doesn't appear in its SELECT clause.
+156        run;
+NOTE: PROC SQL statements are executed immediately; The RUN statement has no effect.
+NOTE: The PROCEDURE SQL printed pages 5-6.
+NOTE: PROCEDURE SQL used (Total process time):
+      real time           0.15 seconds
+      cpu time            0.12 seconds
+      
+
+NOTE: SAS Institute Inc., SAS Campus Drive, Cary, NC USA 27513-2414
+NOTE: The SAS System used:
+      real time           1.56 seconds
+      cpu time            0.95 seconds
+      
