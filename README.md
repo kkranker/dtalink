@@ -73,3 +73,8 @@ Flexible scoring and many-to-many matching techniques are also options.
 
 The Stata help file ([dtalink.sthlp](https://github.com/kkranker/dtalink/raw/master/dtalink.sthlp)) provides additional documentation and examples. After installation, type
 `. help dtalink` to read the package [documentation](https://github.com/kkranker/dtalink/raw/master/dtalink.sthlp).
+
+# Other langauges
+
+l. I would love to try porting this code to Julia and seeing how the performance changes.
+l. I was asked how to do this in SQL or SAS. [This branch](https://github.com/kkranker/dtalink/tree/sql) has a toy example.
