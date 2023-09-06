@@ -4,7 +4,7 @@ dtalink implements probabilistic record linkage (a.k.a. probabilistic matching) 
 - deduplicating records in one data file
 - linking records in two data files
 
-[These presentation slides](https://github.com/kkranker/dtalink/raw/master/dtalink_slides.pdf)
+[These presentation slides](https://github.com/kkranker/dtalink/raw/main/dtalink_slides.pdf)
 provide an introduction to the methods and an overview of the package.
 
 
@@ -13,7 +13,7 @@ provide an introduction to the methods and an overview of the package.
 To install from Github, type this into your Stata command line:
 
 ```stata
-. net from https://raw.githubusercontent.com/kkranker/dtalink/master/
+. net from https://raw.githubusercontent.com/kkranker/dtalink/main/
 ```
 
 To install from SSC, click on the links after typing this into your Stata command line:
@@ -24,7 +24,7 @@ To install from SSC, click on the links after typing this into your Stata comman
 
 # Suggested Citation
 
-* Keith Kranker. "DTALINK: Stata module to implement probabilistic record linkage," Statistical Software Components S458504, Boston College Department of Economics, 2018.  Available at https://ideas.repec.org/c/boc/bocode/s458504.html.  ([slides](https://github.com/kkranker/dtalink/raw/master/dtalink_slides.pdf))
+* Keith Kranker. "DTALINK: Stata module to implement probabilistic record linkage," Statistical Software Components S458504, Boston College Department of Economics, 2018.  Available at https://ideas.repec.org/c/boc/bocode/s458504.html.  ([slides](https://github.com/kkranker/dtalink/raw/main/dtalink_slides.pdf))
 
 or
 
@@ -51,7 +51,7 @@ l. deduplicating records in one data file
 
 There are two ways to implement data linking (case 1):
 (a) the user stacks the two data sets before running `dtalink` and provides a dummy to indicate the file in the `source(varname)` option, or
-(b) the user provides the name of the second file with [using *filename*], in which case the master data set is assigned `source`=0 and the *using* data set is assigned `source`=1.
+(b) the user provides the name of the second file with [using *filename*], in which case the current data set is assigned `source`=0 and the *using* data set is assigned `source`=1.
 If neither of these are specified, data deduplication (case 2) is implemented.
 
 The user specifies matching variables and matching weights.
@@ -71,8 +71,8 @@ making it practical to implement the methods with large, administrative data fil
 (files with many rows or matching variables). It is a generic function which works with any data file.
 Flexible scoring and many-to-many matching techniques are also options.
 
-The Stata help file ([dtalink.sthlp](https://github.com/kkranker/dtalink/raw/master/dtalink.sthlp)) provides additional documentation and examples. After installation, type
-`. help dtalink` to read the package [documentation](https://github.com/kkranker/dtalink/raw/master/dtalink.sthlp).
+The Stata help file ([dtalink.sthlp](https://github.com/kkranker/dtalink/raw/main/dtalink.sthlp)) provides additional documentation and examples. After installation, type
+`. help dtalink` to read the package [documentation](https://github.com/kkranker/dtalink/raw/main/dtalink.sthlp).
 
 Notes about other langauges:
 l. I would love to try porting this module to [Julia](https://julialang.org/). Let me know if you can help!
