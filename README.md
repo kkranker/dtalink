@@ -13,7 +13,7 @@ provide an introduction to the methods and an overview of the package.
 To install from Github, type this into your Stata command line:
 
 ```stata
-. net from https://raw.githubusercontent.com/kkranker/dtalink/main/
+. net from https://raw.githubusercontent.com/kkranker/dtalink/refs/heads/main/
 ```
 
 To install from SSC, click on the links after typing this into your Stata command line:
